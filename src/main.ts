@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/response/error.filter';
 
 async function bootstrap() {
@@ -15,6 +15,10 @@ async function bootstrap() {
     }),
   );
   app.useGlobalFilters(new HttpExceptionFilter());
+
+  app.enableVersioning({
+    type: VersioningType.URI,  // Use /v1/ in the URI
+  });
   
   await app.listen(3000);
 }
