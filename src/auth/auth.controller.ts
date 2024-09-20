@@ -20,13 +20,13 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  register(@Body() registerAuthDTO: RegisterAuthDTO):ResponseApi<String> {
+  register(@Body() registerAuthDTO: RegisterAuthDTO):ResponseApi<RegisterInterfaces> {
     return this.authService.register(registerAuthDTO);
   }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  login(@Body() loginAuthDTO: LoginAuthDTO):ResponseApi<String> {
+  login(@Body() loginAuthDTO: LoginAuthDTO):ResponseApi<LoginInterfaces> {
     return this.authService.login(loginAuthDTO);
   }
 
