@@ -3,9 +3,17 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { LoggingMiddleware } from './common/middleware/loggingRoute.middleware';
+import { DatabaseModule } from './database/database.module';
+import databaseConfig from './config/database.config';
+import { ConfigModule } from '@nestjs/config';
+import { validationSchema } from './config/validation.schema';
 
 @Module({
-  imports: [AuthModule],
+  imports: [
+    AuthModule,
+    DatabaseModule
+
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
