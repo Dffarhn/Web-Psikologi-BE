@@ -11,6 +11,10 @@ export const validationSchema = Joi.object({
   // JWT secret validation
   JWT_ACCESS_SECRET: Joi.string().required(),
   JWT_REFRESH_SECRET: Joi.string().required(),
+  
+  // JWT expiration time validation (e.g., "1h", "7d", etc.)
+  JWT_ACCESS_EXPIRED: Joi.string().required(),
+  JWT_REFRESH_EXPIRED: Joi.string().required(),
 
   // NODE_ENV validation
   NODE_ENV: Joi.string().valid('development', 'production').default('development'),
