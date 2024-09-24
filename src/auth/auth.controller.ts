@@ -23,13 +23,13 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  register(@Body() registerAuthDTO: RegisterAuthDTO): ResponseApi<RegisterInterfaces> {
-    return this.authService.register(registerAuthDTO);
+  async register(@Body() registerAuthDTO: RegisterAuthDTO): Promise<ResponseApi<RegisterInterfaces>> {
+    return await this.authService.register(registerAuthDTO);
   }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  login(@Body() loginAuthDTO: LoginAuthDTO): ResponseApi<LoginInterfaces> {
+  login(@Body() loginAuthDTO: LoginAuthDTO): Promise<ResponseApi<LoginInterfaces>> {
     return this.authService.login(loginAuthDTO);
   }
 

@@ -9,6 +9,6 @@ export class Role {
   @Column({ nullable: false, type:'varchar',length:255 })
   name: string;
 
-  @OneToMany(() => User, (user) => user.role)  // Set the reverse relation
+  @OneToMany(() => User, (user) => user.role,{cascade:true})  // Set the reverse relation
   users: User[];
 }

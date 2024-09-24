@@ -20,13 +20,13 @@ export class User {
   @Column({ type: 'date' })
   birthDate: Date;
 
-  @Column({ type: 'date' })
-  yearEntry: Date;
+  @Column({ type: 'integer' })
+  yearEntry: number;
 
-  @ManyToOne(() => Role, (role) => role.users)
+  @ManyToOne(() => Role, (role) => role.users, { nullable: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   role: Role;
 
-  @ManyToOne(() => Auth, (auth) => auth.users, { nullable: true }) // Assuming an Auth entity
+  @ManyToOne(() => Auth, (auth) => auth.users, { nullable: true , onDelete:'CASCADE', onUpdate:'CASCADE'}) // Assuming an Auth entity
   auth: Auth;
 
   @Column({type:'uuid', nullable: true, unique:true })
@@ -38,7 +38,7 @@ export class User {
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
-  @ManyToOne(() => Faculty, (faculty) => faculty.users) // Assuming a Faculty entity
+  @ManyToOne(() => Faculty, (faculty) => faculty.users,{ nullable: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' }) // Assuming a Faculty entity
   faculty: Faculty;
 
   @Column({
