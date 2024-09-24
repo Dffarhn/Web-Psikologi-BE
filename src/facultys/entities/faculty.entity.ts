@@ -9,6 +9,6 @@ export class Faculty {
   @Column({ nullable: false, type:'varchar',length:255 })
   name: string;
 
-  @OneToMany(() => User, (user) => user.faculty)
+  @OneToMany(() => User, (user) => user.faculty,{cascade:true})
   users: User[];
 }
