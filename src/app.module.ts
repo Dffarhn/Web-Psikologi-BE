@@ -10,6 +10,7 @@ import { validationSchema } from './config/validation.schema';
 import { UserModule } from './user/user.module';
 import { RolesModule } from './roles/roles.module';
 import { FacultysModule } from './facultys/facultys.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -17,7 +18,8 @@ import { FacultysModule } from './facultys/facultys.module';
     DatabaseModule,
     UserModule,
     RolesModule,
-    FacultysModule
+    FacultysModule,
+    EmailModule
 
   ],
   controllers: [AppController],

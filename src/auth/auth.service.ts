@@ -17,6 +17,7 @@ import { Auth } from './entities/auth.entity';
 import { randomUUID } from 'crypto';
 import { FacultysService } from 'src/facultys/facultys.service';
 import * as bcrypt from 'bcrypt';
+import { EmailService } from 'src/email/email.service';
 
 
 @Injectable()
@@ -30,6 +31,9 @@ export class AuthService {
 
     @Inject(FacultysService)
     private facultyService: FacultysService,
+
+    @Inject(EmailService)
+    private emailService: EmailService,
   ) {}
 
   private async IsEmailNotExist(CheckEmail: string): Promise<boolean> {
