@@ -7,11 +7,9 @@ import { ResendConfirmationDTO } from './dto/resendAuth.dto';
 @Injectable()
 export class AuthService {
   register(registerAuthDTO: RegisterAuthDTO): ResponseApi<RegisterInterfaces> {
-
-    const data:RegisterInterfaces = {
-      created_at: new Date()
-    }
-
+    const data: RegisterInterfaces = {
+      created_at: new Date(),
+    };
 
     return new ResponseApi(
       HttpStatus.CREATED,
@@ -19,8 +17,6 @@ export class AuthService {
       data,
     );
   }
-
-  
 
   login(loginAuthDTO: LoginAuthDTO): ResponseApi<LoginInterfaces> {
     const data: LoginInterfaces = {
@@ -30,11 +26,21 @@ export class AuthService {
     return new ResponseApi(HttpStatus.OK, 'Successfully login user', data);
   }
 
-  resendConfirmation(resendConfirmationDTO: ResendConfirmationDTO):ResponseApi<string>{
-    return new ResponseApi(HttpStatus.CREATED,'Successfully Resend Confirmation',"Berhasil")
+  resendConfirmation(
+    resendConfirmationDTO: ResendConfirmationDTO,
+  ): ResponseApi<string> {
+    return new ResponseApi(
+      HttpStatus.CREATED,
+      'Successfully Resend Confirmation',
+      'Berhasil',
+    );
   }
 
   confirmEmail(authId: string, token: string): ResponseApi<string> {
-    return new ResponseApi(HttpStatus.OK, 'Successfully login user', "berhasil");
+    return new ResponseApi(
+      HttpStatus.OK,
+      'Successfully login user',
+      'berhasil',
+    );
   }
 }
