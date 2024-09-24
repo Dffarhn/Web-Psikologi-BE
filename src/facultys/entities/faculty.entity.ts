@@ -7,7 +7,7 @@ export class Faculty {
   id: string;
 
   @Column({ nullable: false, type:'varchar',length:255 })
-  nama: string;
+  name: string;
 
   @OneToMany(() => User, (user) => user.faculty)
   users: User[];
