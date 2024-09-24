@@ -20,6 +20,8 @@ export class AuthService {
     );
   }
 
+  
+
   login(loginAuthDTO: LoginAuthDTO): ResponseApi<LoginInterfaces> {
     const data: LoginInterfaces = {
       access_token: 'user access_token',
