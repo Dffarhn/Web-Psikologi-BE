@@ -21,7 +21,8 @@ import databaseConfig from 'src/config/database.config';
         username: configService.get<string>('database.username'),
         password: configService.get<string>('database.password'),
         database: configService.get<string>('database.name'),
-        synchronize: configService.get<string>('NODE_ENV') === 'development', // Enable synchronize in development only
+        entities: [__dirname + '/../**/*.entity{.ts,.js}'], // Ensure this path is correct
+        synchronize: true, // Be cautious with synchronize in production
       }),
     }),
   ],
