@@ -7,11 +7,13 @@ import { Faculty } from 'src/facultys/entities/faculty.entity';
 import { Auth } from './entities/auth.entity';
 import { FacultysService } from 'src/facultys/facultys.service';
 import { FacultysModule } from 'src/facultys/facultys.module';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
   imports:[
     TypeOrmModule.forFeature([User,Auth]),
-    FacultysModule
+    FacultysModule,
+    EmailModule
   ],
   controllers: [AuthController],
   providers: [AuthService],
