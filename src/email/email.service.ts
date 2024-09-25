@@ -1,14 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import * as brevo from '@getbrevo/brevo'
+import { ConfigService } from '@nestjs/config';
+import { TransactionalEmailsApi } from '@getbrevo/brevo';
 
 @Injectable()
 export class EmailService {
-  private apiInstance;
+  private apiInstance:any;
   
-  constructor() {
-    this.apiInstance = new brevo.TransactionalEmailsApi();
-    let apiKey = this.apiInstance.authentications['apiKey'];
-    apiKey.apiKey = process.env.BREVO_API_KEY; // Use your API key or from environment variable
+  constructor(private readonly configService: ConfigService) {
+    // Initialize the Brevo API instance
+    this.apiInstance = new TransactionalEmailsApi();
+
+    // Set API key from environment variables
+    const apiKey = this.apiInstance.authentications['apiKey'].apiKey = this.configService.get<string>('email.apiKey');
   }
 
   async sendEmail(to: string, subject: string, htmlContent: string) {
@@ -17,9 +21,9 @@ export class EmailService {
 
       sendSmtpEmail.subject = subject;
       sendSmtpEmail.htmlContent = htmlContent;
-      sendSmtpEmail.sender = { name: 'YourApp', email: 'your-email@domain.com' }; // Customize sender
+      sendSmtpEmail.sender = { name: 'EmindApp', email: 'd.raihan2004@gmail.com' }; // Customize sender
       sendSmtpEmail.to = [{ email: to, name: to.split('@')[0] }];
-      sendSmtpEmail.replyTo = { email: 'your-reply-email@domain.com', name: 'YourApp' };
+      sendSmtpEmail.replyTo = { email: 'd.raihan2004@gmail.com', name: 'EmindApp' };
 
       const response = await this.apiInstance.sendTransacEmail(sendSmtpEmail);
       console.log('Email sent successfully: ', JSON.stringify(response));
