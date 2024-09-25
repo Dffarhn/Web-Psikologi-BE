@@ -8,12 +8,14 @@ import { Auth } from './entities/auth.entity';
 import { FacultysService } from 'src/facultys/facultys.service';
 import { FacultysModule } from 'src/facultys/facultys.module';
 import { EmailModule } from 'src/email/email.module';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports:[
-    TypeOrmModule.forFeature([User,Auth]),
+    TypeOrmModule.forFeature([Auth]),
     FacultysModule,
-    EmailModule
+    EmailModule,
+    UserModule
   ],
   controllers: [AuthController],
   providers: [AuthService],

@@ -18,14 +18,13 @@ import { randomUUID } from 'crypto';
 import { FacultysService } from 'src/facultys/facultys.service';
 import * as bcrypt from 'bcrypt';
 import { EmailService } from 'src/email/email.service';
-
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { UserService } from 'src/user/user.service';
+import { generateConfirmationEmailContent } from 'src/common/function/email.generator';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
-
     @InjectRepository(Auth)
     private authRepository: Repository<Auth>,
 
@@ -34,122 +33,150 @@ export class AuthService {
 
     @Inject(EmailService)
     private emailService: EmailService,
+
+    @Inject(UserService)
+    private userService: UserService,
   ) {}
 
-  private async IsEmailNotExist(CheckEmail: string): Promise<boolean> {
-    const checkEmail = await this.userRepository.findOne({
-      where: { email: CheckEmail },
-    });
+  private readonly saltRounds = 10;
 
-    if (checkEmail) {
-      return false;
-    }
-    return true;
+  private async isEmailNotExist(email: string): Promise<boolean> {
+    const existingUser = await this.userService.findByEmail(email);
+    return !existingUser; // Returns true if no user found
   }
 
-  async register(
-    registerAuthDTO: RegisterAuthDTO,
-  ): Promise<ResponseApi<RegisterInterfaces>> {
-    // Check if the email already exists
-    if (!(await this.IsEmailNotExist(registerAuthDTO.email))) {
-      throw new ForbiddenException(
-        'The email is already in use by another account',
-      );
-    }
-
-    const faculty = await this.facultyService.getFaculty(
-      registerAuthDTO.faculty,
-    );
-
-    // Check if the passwords match
-    if (registerAuthDTO.password !== registerAuthDTO.retypedpassword) {
-      throw new BadRequestException('Your Passwords do not match');
-    }
-
-    // Hash the password before saving
-    const hashedPassword = await bcrypt.hash(registerAuthDTO.password, 10);
-
-    // Create a new authentication record
+  async createAuth(): Promise<Auth> {
     const newAuth = this.authRepository.create({
       token: this.generateTokenConfirmation(), // Generate a confirmation token
     });
 
     // Save the new auth record to get the generated ID
     const savedAuth = await this.authRepository.save(newAuth);
-
-    // Create a new user instance
-    const newUser = this.userRepository.create({
-      email: registerAuthDTO.email, // Assuming you want to store the email
-      username: registerAuthDTO.username,
-      password: hashedPassword, // Ensure you hash the password before saving
-      birthDate: new Date(registerAuthDTO.birthDate),
-      yearEntry: registerAuthDTO.yearEntry,
-      auth: savedAuth, // Link the user to the auth record
-      faculty: faculty.data, // Assuming faculty is provided in DTO
-      gender: registerAuthDTO.gender, // Assuming gender is provided in DTO
-    });
-
-    // Save the new user to the database
-    await this.userRepository.save(newUser);
-
-    // Prepare the response data
-    const data: RegisterInterfaces = {
-      created_at: new Date(), // Include user ID if needed
-    };
-
-    return new ResponseApi(
-      HttpStatus.CREATED,
-      'Successfully registered user',
-      data,
-    );
+    return savedAuth;
   }
 
-  async login(loginAuthDTO: LoginAuthDTO): Promise<ResponseApi<LoginInterfaces>> {
-    const user = await this.userRepository.findOne({
-      where: { email: loginAuthDTO.email },
-    });
-  
+  async register(
+    registerAuthDTO: RegisterAuthDTO,
+  ): Promise<RegisterInterfaces> {
+    try {
+      // Check if the email is already registered
+      const emailNotExists = await this.isEmailNotExist(registerAuthDTO.email);
+      if (!emailNotExists) {
+        throw new ForbiddenException(
+          'The email is already in use by another account',
+        );
+      }
+
+      // Check if passwords match
+      if (registerAuthDTO.password !== registerAuthDTO.retypedpassword) {
+        throw new BadRequestException('Passwords do not match');
+      }
+
+      // Check if faculty exists
+      const faculty = await this.facultyService.getFacultyById(
+        registerAuthDTO.facultyId,
+      );
+      if (!faculty) {
+        throw new BadRequestException('Invalid Faculty ID');
+      }
+
+      // Hash the password
+      const hashedPassword = await this.hashPassword(registerAuthDTO.password);
+
+      // Create a new auth record with token
+      const authRecord = await this.createAuth();
+
+      // Prepare user data
+      const newUser = {
+        email: registerAuthDTO.email,
+        username: registerAuthDTO.username,
+        password: hashedPassword,
+        birthDate: new Date(registerAuthDTO.birthDate),
+        yearEntry: registerAuthDTO.yearEntry,
+        faculty,
+        gender: registerAuthDTO.gender,
+        auth: authRecord,
+      };
+
+      // Save the user
+      await this.userService.create(newUser);
+
+
+      
+      const confirmationLink = `http://localhost:3000/confirm?token=${authRecord.token}&&idAuth=${authRecord.id}`;
+
+      const emailContent = generateConfirmationEmailContent(registerAuthDTO.username, confirmationLink);
+
+      // Now you can use `emailContent` in your sendEmail function
+      const response = await this.emailService.sendEmail(registerAuthDTO.email, 'Confirm Your Email - Emind', emailContent);
+
+
+      // Return success response
+      return {
+        created_at: new Date(),
+      };
+    } catch (error) {
+      // Handle unexpected errors
+      throw new BadRequestException(
+        'Failed to register user: ' + error.message,
+      );
+    }
+  }
+  async login(loginAuthDTO: LoginAuthDTO): Promise<LoginInterfaces> {
+    const user = await this.userService.findByEmail(loginAuthDTO.email);
+
     if (!user) {
       throw new ForbiddenException('Invalid credentials');
     }
-  
-    const isPasswordValid = await bcrypt.compare(
+
+    const isPasswordValid = await this.comparePasswords(
       loginAuthDTO.password,
-      user.password, // Compare the hashed password
+      user.password,
     );
-  
+
     if (!isPasswordValid) {
       throw new ForbiddenException('Invalid credentials');
     }
-  
+
     const data: LoginInterfaces = {
       access_token: 'user access_token',
       refresh_token: 'user refresh_token',
     };
-  
-    return new ResponseApi(HttpStatus.OK, 'Successfully login user', data);
-  }
-  
 
-  resendConfirmation(
-    resendConfirmationDTO: ResendConfirmationDTO,
-  ): ResponseApi<string> {
-    return new ResponseApi(
-      HttpStatus.CREATED,
-      'Successfully Resend Confirmation',
-      'Berhasil',
-    );
+    return data;
   }
 
-  confirmEmail(authId: string, token: string): ResponseApi<string> {
-    return new ResponseApi(
-      HttpStatus.OK,
-      'Successfully login user',
-      'berhasil',
-    );
-  }
+  // resendConfirmation(
+  //   resendConfirmationDTO: ResendConfirmationDTO,
+  // ): ResponseApi<string> {
+  //   return new ResponseApi(
+  //     HttpStatus.CREATED,
+  //     'Successfully Resend Confirmation',
+  //     'Berhasil',
+  //   );
+  // }
+
+  // confirmEmail(authId: string, token: string): ResponseApi<string> {
+  //   return new ResponseApi(
+  //     HttpStatus.OK,
+  //     'Successfully login user',
+  //     'berhasil',
+  //   );
+  // }
 
   private generateTokenConfirmation(): string {
     return randomUUID();
+  }
+
+  async hashPassword(password: string): Promise<string> {
+    const hashedPassword = await bcrypt.hash(password, this.saltRounds);
+    return hashedPassword;
+  }
+
+  async comparePasswords(
+    password: string,
+    hashedPassword: string,
+  ): Promise<boolean> {
+    return await bcrypt.compare(password, hashedPassword);
   }
 }
