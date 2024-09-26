@@ -19,6 +19,8 @@ export const validationSchema = Joi.object({
 
   EMAIL_API_KEY: Joi.string().required(),
 
+  BASE_URL_APP: Joi.string().required(),
+
   // NODE_ENV validation
   NODE_ENV: Joi.string().valid('development', 'production').default('development'),
 });
