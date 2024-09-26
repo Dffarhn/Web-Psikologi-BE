@@ -12,6 +12,8 @@ import { RolesModule } from './roles/roles.module';
 import { FacultysModule } from './facultys/facultys.module';
 import { EmailModule } from './email/email.module';
 import { JwtKeepUpModule } from './jwt/jwt.module';
+import { APP_GUARD } from '@nestjs/core';
+import { RolesGuard } from './roles/guards/role.guard';
 
 @Module({
   imports: [
@@ -21,8 +23,6 @@ import { JwtKeepUpModule } from './jwt/jwt.module';
     RolesModule,
     FacultysModule,
     EmailModule,
-    JwtKeepUpModule
-
   ],
   controllers: [AppController],
   providers: [AppService],

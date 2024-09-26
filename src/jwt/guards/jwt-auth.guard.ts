@@ -1,39 +1,59 @@
-// src/jwt/guards/jwt-auth.guard.ts
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { AuthGuard } from '@nestjs/passport';
-import { ROLES } from 'src/common/group/role.enum';
-import { ROLES_KEY } from '../decorators/role.decorator';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  UnauthorizedException,
+  Logger,
+} from '@nestjs/common';
+import { Request } from 'express';
+import { JwtKeepUpService } from '../jwt.service';
+import { JsonWebTokenError, TokenExpiredError } from '@nestjs/jwt';
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') implements CanActivate {
-  constructor(private reflector: Reflector) {
-    super();
-  }
+export class JwtAuthGuard implements CanActivate {
+  private readonly logger = new Logger(JwtAuthGuard.name); // Create a logger instance with the guard's name
+
+  constructor(private jwtService: JwtKeepUpService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const roles = this.reflector.get<ROLES[]>(ROLES_KEY, context.getHandler());
-    if (!roles) {
-      return super.canActivate(context) as boolean; // If no roles are specified, just check JWT
+    const request = context.switchToHttp().getRequest<Request>();
+    const token = this.extractTokenFromHeader(request);
+
+    if (!token) {
+      this.logger.warn('Token not found in request headers'); // Log when the token is missing
+      throw new UnauthorizedException('Token Not Found');
     }
 
-    const request = context.switchToHttp().getRequest();
-    // console.log(request)
-    const user = request.user; // Assuming user is attached to request by JWT strategy
-
-    console.log(user)
-
-    if (!user) {
-      throw new ForbiddenException('User not found');
+    try {
+      console.log(token)
+      const payload = await this.jwtService.verifyAccessToken(token);
+      request.user = payload; // Attach the payload to the request
+      this.logger.log(`Token validated successfully for user`); // Log successful validation
+    } catch (error) {
+      if (error instanceof TokenExpiredError) {
+        this.logger.warn('Token has expired'); // Log when the token is expired
+        throw new UnauthorizedException('Token Expired');
+      } else if (error instanceof JsonWebTokenError) {
+        this.logger.error('Invalid token detected'); // Log invalid token errors
+        throw new ForbiddenException('Invalid token');
+      } else {
+        this.logger.error('Unexpected error during token validation'); // Log unexpected errors
+        throw new UnauthorizedException('Access Denied');
+      }
     }
 
-    // Check if the user's role is in the allowed roles
-    const hasRole = () => roles.includes(user.role as ROLES); // Ensure to cast user.role to ROLES
-    if (user && user.role && hasRole()) {
-        console.log("masuk sini pak")
-      return true; // If the user has the required role, grant access
-    }
+    return true;
+  }
 
-    throw new ForbiddenException('You do not have permission to access this resource');
+  private extractTokenFromHeader(request: Request): string | undefined {
+    const [type, token] = request.headers.authorization?.split(' ') ?? [];
+    if (type === 'Bearer') {
+      this.logger.debug('Extracted Bearer token from header'); // Log successful extraction
+      return token;
+    } else {
+      this.logger.warn('Authorization header format is incorrect'); // Log incorrect format
+      return undefined;
+    }
   }
 }
