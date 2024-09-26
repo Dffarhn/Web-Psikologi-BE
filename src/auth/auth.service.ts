@@ -1,26 +1,27 @@
 import {
   BadRequestException,
   ForbiddenException,
+  HttpException,
   HttpStatus,
   Inject,
   Injectable,
+  InternalServerErrorException,
   Res,
 } from '@nestjs/common';
 import { RegisterAuthDTO } from './dto/registerAuth.dto';
 import { LoginAuthDTO } from './dto/loginAuth.dto';
-import { ResponseApi } from 'src/common/response/responseApi.format';
-import { ResendConfirmationDTO } from './dto/resendAuth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Auth } from './entities/auth.entity';
 import { randomUUID } from 'crypto';
 import { FacultysService } from 'src/facultys/facultys.service';
-import * as bcrypt from 'bcrypt';
 import { EmailService } from 'src/email/email.service';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { UserService } from 'src/user/user.service';
-import { generateConfirmationEmailContent } from 'src/common/function/email.generator';
+import {
+  comparePasswords,
+  hashPassword,
+} from 'src/common/function/password.function';
 
 @Injectable()
 export class AuthService {
@@ -36,9 +37,9 @@ export class AuthService {
 
     @Inject(UserService)
     private userService: UserService,
-  ) {}
 
-  private readonly saltRounds = 10;
+    private dataSource: DataSource,
+  ) {}
 
   private async isEmailNotExist(email: string): Promise<boolean> {
     const existingUser = await this.userService.findByEmail(email);
@@ -58,6 +59,10 @@ export class AuthService {
   async register(
     registerAuthDTO: RegisterAuthDTO,
   ): Promise<RegisterInterfaces> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
       // Check if the email is already registered
       const emailNotExists = await this.isEmailNotExist(registerAuthDTO.email);
@@ -81,47 +86,58 @@ export class AuthService {
       }
 
       // Hash the password
-      const hashedPassword = await this.hashPassword(registerAuthDTO.password);
+      const hashedPassword = await hashPassword(registerAuthDTO.password);
 
       // Create a new auth record with token
       const authRecord = await this.createAuth();
 
-      // Prepare user data
-      const newUser = {
-        email: registerAuthDTO.email,
-        username: registerAuthDTO.username,
-        password: hashedPassword,
-        birthDate: new Date(registerAuthDTO.birthDate),
-        yearEntry: registerAuthDTO.yearEntry,
-        faculty,
-        gender: registerAuthDTO.gender,
-        auth: authRecord,
-      };
+      // Create an instance of the User entity
+      const newUser = new User();
+      newUser.email = registerAuthDTO.email;
+      newUser.username = registerAuthDTO.username;
+      newUser.password = hashedPassword;
+      newUser.birthDate = new Date(registerAuthDTO.birthDate);
+      newUser.yearEntry = registerAuthDTO.yearEntry;
+      newUser.faculty = faculty;
+      newUser.gender = registerAuthDTO.gender;
+      newUser.auth = authRecord;
 
-      // Save the user
-      await this.userService.create(newUser);
+      // Save the user using the query runner's transactional method
+      await queryRunner.manager.save(User, newUser); // Pass the entity and instance to save
 
+      // Send the confirmation email
+      await this.emailService.sendConfirmationEmail(
+        registerAuthDTO.email,
+        registerAuthDTO.username,
+        authRecord.token,
+        authRecord.id,
+      );
 
-      
-      const confirmationLink = `http://localhost:3000/confirm?token=${authRecord.token}&&idAuth=${authRecord.id}`;
-
-      const emailContent = generateConfirmationEmailContent(registerAuthDTO.username, confirmationLink);
-
-      // Now you can use `emailContent` in your sendEmail function
-      const response = await this.emailService.sendEmail(registerAuthDTO.email, 'Confirm Your Email - Emind', emailContent);
-
+      // Commit the transaction if everything is successful
+      await queryRunner.commitTransaction();
 
       // Return success response
       return {
         created_at: new Date(),
       };
     } catch (error) {
-      // Handle unexpected errors
-      throw new BadRequestException(
-        'Failed to register user: ' + error.message,
+      // Roll back the transaction in case of any failure
+      await queryRunner.rollbackTransaction();
+
+      // Check if the error is an instance of HttpException (covers all known HTTP exceptions)
+      if (error instanceof HttpException) {
+        throw error; // Re-throw all known HTTP exceptions (Forbidden, Unauthorized, BadRequest, etc.)
+      }
+
+      throw new InternalServerErrorException(
+        error.message,
       );
+    } finally {
+      // Release the query runner after the transaction
+      await queryRunner.release();
     }
   }
+
   async login(loginAuthDTO: LoginAuthDTO): Promise<LoginInterfaces> {
     const user = await this.userService.findByEmail(loginAuthDTO.email);
 
@@ -129,7 +145,7 @@ export class AuthService {
       throw new ForbiddenException('Invalid credentials');
     }
 
-    const isPasswordValid = await this.comparePasswords(
+    const isPasswordValid = await comparePasswords(
       loginAuthDTO.password,
       user.password,
     );
@@ -156,27 +172,42 @@ export class AuthService {
   //   );
   // }
 
-  // confirmEmail(authId: string, token: string): ResponseApi<string> {
-  //   return new ResponseApi(
-  //     HttpStatus.OK,
-  //     'Successfully login user',
-  //     'berhasil',
-  //   );
-  // }
+  async confirmEmail(authId: string, token: string): Promise<boolean> {
+    try {
+      // Find the auth record by authId and token
+      const authRecord = await this.authRepository.findOne({
+        where: { id: authId, token },
+      });
+
+      // Check if the auth record exists
+      if (!authRecord) {
+        throw new BadRequestException('Invalid token or authId');
+      }
+
+      // Check if the email is already confirmed
+      if (authRecord.isVerification) {
+        throw new BadRequestException('Email is already confirmed');
+      }
+
+      // Mark the email as confirmed
+      authRecord.isVerification = true;
+      authRecord.verificationAt = new Date();
+      await this.authRepository.save(authRecord);
+
+      return true; // Return true if the confirmation was successful
+    } catch (error) {
+      // Check if the error is an instance of HttpException (covers all known HTTP exceptions)
+      if (error instanceof HttpException) {
+        throw error; // Re-throw all known HTTP exceptions (Forbidden, Unauthorized, BadRequest, etc.)
+      }
+
+      throw new InternalServerErrorException(
+        'An unexpected error occurred during registration. Please try again later.',
+      );
+    }
+  }
 
   private generateTokenConfirmation(): string {
     return randomUUID();
-  }
-
-  async hashPassword(password: string): Promise<string> {
-    const hashedPassword = await bcrypt.hash(password, this.saltRounds);
-    return hashedPassword;
-  }
-
-  async comparePasswords(
-    password: string,
-    hashedPassword: string,
-  ): Promise<boolean> {
-    return await bcrypt.compare(password, hashedPassword);
   }
 }

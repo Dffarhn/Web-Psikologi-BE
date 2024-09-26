@@ -1,5 +1,8 @@
-export function generateConfirmationEmailContent(userName: string, confirmationLink: string): string {
-    return `
+export function generateConfirmationEmailContent(
+  userName: string,
+  confirmationLink: string,
+): string {
+  return `
       <html>
         <head>
           <style>
@@ -39,17 +42,16 @@ export function generateConfirmationEmailContent(userName: string, confirmationL
         </head>
         <body>
           <div class="container">
-            <h1>Welcome to Emind, ${userName}!</h1>
-            <p>Thank you for registering with Emind. We're excited to have you on board!</p>
+            <h1>Welcome to KeepUp, ${userName}!</h1>
+            <p>Thank you for registering with KeepUp. We're excited to have you on board!</p>
             <p>Please confirm your email address by clicking the button below:</p>
             <a href="${confirmationLink}" class="button">Confirm Email</a>
             <p>If you did not register for this account, please ignore this email.</p>
             <div class="footer">
-              <p>Best regards,<br>The Emind Team</p>
+              <p>Best regards,<br>The KeepUp Team</p>
             </div>
           </div>
         </body>
       </html>
     `;
-  }
-  
+}
