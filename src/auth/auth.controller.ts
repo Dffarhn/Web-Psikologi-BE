@@ -44,7 +44,7 @@ export class AuthController {
   ): Promise<ResponseApi<LoginInterfaces>> {
     const payload = await this.authService.login(loginAuthDTO);
 
-    return new ResponseApi(HttpStatus.OK, 'Register Successfully', payload);
+    return new ResponseApi(HttpStatus.OK, 'Login Successfully', payload);
   }
 
   // @Post('resendConfirmation')

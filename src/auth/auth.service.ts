@@ -22,6 +22,8 @@ import {
   comparePasswords,
   hashPassword,
 } from 'src/common/function/password.function';
+import { RolesService } from 'src/roles/roles.service';
+import { JwtKeepUpService } from 'src/jwt/jwt.service';
 
 @Injectable()
 export class AuthService {
@@ -37,6 +39,12 @@ export class AuthService {
 
     @Inject(UserService)
     private userService: UserService,
+
+    @Inject(RolesService)
+    private roleService: RolesService,
+
+    @Inject(JwtKeepUpService)
+    private jwtKeepUpService: JwtKeepUpService,
 
     private dataSource: DataSource,
   ) {}
@@ -85,6 +93,11 @@ export class AuthService {
         throw new BadRequestException('Invalid Faculty ID');
       }
 
+      const role = await this.roleService.getRoleById(registerAuthDTO.roleId);
+      if (!role) {
+        throw new BadRequestException('Invalid Role ID');
+      }
+
       // Hash the password
       const hashedPassword = await hashPassword(registerAuthDTO.password);
 
@@ -101,6 +114,7 @@ export class AuthService {
       newUser.faculty = faculty;
       newUser.gender = registerAuthDTO.gender;
       newUser.auth = authRecord;
+      newUser.role = role;
 
       // Save the user using the query runner's transactional method
       await queryRunner.manager.save(User, newUser); // Pass the entity and instance to save
@@ -129,9 +143,7 @@ export class AuthService {
         throw error; // Re-throw all known HTTP exceptions (Forbidden, Unauthorized, BadRequest, etc.)
       }
 
-      throw new InternalServerErrorException(
-        error.message,
-      );
+      throw new InternalServerErrorException(error.message);
     } finally {
       // Release the query runner after the transaction
       await queryRunner.release();
@@ -154,9 +166,25 @@ export class AuthService {
       throw new ForbiddenException('Invalid credentials');
     }
 
+    console.log(user);
+
+    const payload = {
+      id: user.id,
+      user: user.username,
+      role: user.role.id,
+      iat: Math.floor(Date.now() / 1000),
+      iss: 'ApiKeepUp',
+      aud: 'KeepUp',
+    };
+
+    // Step 4: Generate access and refresh tokens
+    const accessToken = this.jwtKeepUpService.generateAccessToken(payload);
+
+    const refreshToken = this.jwtKeepUpService.generateRefreshToken(payload);
+
     const data: LoginInterfaces = {
-      access_token: 'user access_token',
-      refresh_token: 'user refresh_token',
+      access_token: accessToken,
+      refresh_token: refreshToken,
     };
 
     return data;
