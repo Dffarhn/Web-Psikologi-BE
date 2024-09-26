@@ -166,8 +166,6 @@ export class AuthService {
       throw new ForbiddenException('Invalid credentials');
     }
 
-    console.log(user);
-
     const payload = {
       id: user.id,
       user: user.username,
@@ -178,9 +176,11 @@ export class AuthService {
     };
 
     // Step 4: Generate access and refresh tokens
-    const accessToken = this.jwtKeepUpService.generateAccessToken(payload);
+    const accessToken =
+      await this.jwtKeepUpService.generateAccessToken(payload);
 
-    const refreshToken = this.jwtKeepUpService.generateRefreshToken(payload);
+    const refreshToken =
+      await this.jwtKeepUpService.generateRefreshToken(payload);
 
     const data: LoginInterfaces = {
       access_token: accessToken,
