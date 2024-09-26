@@ -3,6 +3,7 @@ import { Faculty } from 'src/facultys/entities/faculty.entity';
 import { IsEmail, IsNotEmpty, IsString, IsInt, IsOptional, Length, IsEnum, IsDateString } from 'class-validator';
 import { Gender } from 'src/common/group/gender.enum';
 import { isNotBlank } from 'src/common/validatorCustom/isNotBlank.validator';
+import { Role } from 'src/roles/entities/role.entity';
 
 export class CreateUserDto {
   @IsEmail({}, { message: 'Invalid email format' })
@@ -36,6 +37,9 @@ export class CreateUserDto {
 
   @IsOptional()
   idPsikologi?: string;
+
+  @IsOptional()
+  role:Role
 
   @IsNotEmpty({ message: 'Faculty is required' })
   @IsOptional()

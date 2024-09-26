@@ -11,6 +11,7 @@ import { UserModule } from './user/user.module';
 import { RolesModule } from './roles/roles.module';
 import { FacultysModule } from './facultys/facultys.module';
 import { EmailModule } from './email/email.module';
+import { JwtKeepUpModule } from './jwt/jwt.module';
 
 @Module({
   imports: [
@@ -19,7 +20,8 @@ import { EmailModule } from './email/email.module';
     UserModule,
     RolesModule,
     FacultysModule,
-    EmailModule
+    EmailModule,
+    JwtKeepUpModule
 
   ],
   controllers: [AppController],

@@ -9,10 +9,14 @@ import { FacultysService } from 'src/facultys/facultys.service';
 import { FacultysModule } from 'src/facultys/facultys.module';
 import { EmailModule } from 'src/email/email.module';
 import { UserModule } from 'src/user/user.module';
+import { RolesModule } from 'src/roles/roles.module';
+import { JwtKeepUpModule } from 'src/jwt/jwt.module';
 
 @Module({
   imports:[
     TypeOrmModule.forFeature([Auth]),
+    RolesModule,
+    JwtKeepUpModule,
     FacultysModule,
     EmailModule,
     UserModule
