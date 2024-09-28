@@ -3,7 +3,7 @@ interface LoginInterfaces {
     refresh_token: string;
 }
 
-interface RegisterInterfaces{
+interface RegisterInterfaces extends LoginInterfaces{
     created_at: Date
 }
   

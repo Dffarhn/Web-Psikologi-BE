@@ -6,6 +6,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   Res,
 } from '@nestjs/common';
 import { RegisterAuthDTO } from './dto/registerAuth.dto';
@@ -24,6 +25,7 @@ import {
 } from 'src/common/function/password.function';
 import { RolesService } from 'src/roles/roles.service';
 import { JwtKeepUpService } from 'src/jwt/jwt.service';
+import { UserId } from 'src/user/decorator/userId.decorator';
 
 @Injectable()
 export class AuthService {
@@ -130,10 +132,30 @@ export class AuthService {
       // Commit the transaction if everything is successful
       await queryRunner.commitTransaction();
 
-      // Return success response
-      return {
+      const payload = {
+        id: newUser.id,
+        user: newUser.username,
+        role: newUser.role.id,
+        iat: Math.floor(Date.now() / 1000),
+        iss: 'ApiKeepUp',
+        aud: 'KeepUp',
+      };
+
+      // Step 4: Generate access and refresh tokens
+      const accessToken =
+        await this.jwtKeepUpService.generateAccessToken(payload);
+
+      const refreshToken =
+        await this.jwtKeepUpService.generateRefreshToken(payload);
+
+      const data: RegisterInterfaces = {
+        access_token: accessToken,
+        refresh_token: refreshToken,
         created_at: new Date(),
       };
+
+      // Return success response
+      return data;
     } catch (error) {
       // Roll back the transaction in case of any failure
       await queryRunner.rollbackTransaction();
@@ -190,15 +212,41 @@ export class AuthService {
     return data;
   }
 
-  // resendConfirmation(
-  //   resendConfirmationDTO: ResendConfirmationDTO,
-  // ): ResponseApi<string> {
-  //   return new ResponseApi(
-  //     HttpStatus.CREATED,
-  //     'Successfully Resend Confirmation',
-  //     'Berhasil',
-  //   );
-  // }
+
+
+  async resendConfirmation(@UserId() userId: string): Promise<boolean> {
+    // Find the user by ID
+    const dataUser = await this.userService.findById(userId);
+    if (!dataUser) {
+      throw new NotFoundException('User not found');
+    }
+  
+    // Find the corresponding auth record
+    const updateTokenAuth = await this.authRepository.findOne({
+      where: { id: dataUser.auth.id },
+    });
+  
+    if (!updateTokenAuth) {
+      throw new NotFoundException('Auth record not found');
+    }
+  
+    // Generate a new confirmation token
+    updateTokenAuth.token = this.generateTokenConfirmation();
+  
+    // Save the updated auth record with the new token
+    await this.authRepository.save(updateTokenAuth);
+  
+    // Send the confirmation email
+    await this.emailService.sendConfirmationEmail(
+      dataUser.email,
+      dataUser.username,
+      updateTokenAuth.token,
+      dataUser.auth.id,
+    );
+  
+    return true;
+  }
+  
 
   async confirmEmail(authId: string, token: string): Promise<boolean> {
     try {

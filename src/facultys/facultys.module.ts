@@ -4,10 +4,12 @@ import { FacultysController } from './facultys.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Faculty } from './entities/faculty.entity';
 import { JwtKeepUpModule } from 'src/jwt/jwt.module';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports:[
     TypeOrmModule.forFeature([Faculty]),
+    UserModule
   ],
   providers: [FacultysService],
   controllers: [FacultysController],
