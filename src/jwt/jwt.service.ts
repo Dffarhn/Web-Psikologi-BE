@@ -2,6 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService as NestJwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { JwtPayloadInterfaces } from './interfaces/jwtPayload.interface';
 
 @Injectable()
 export class JwtKeepUpService {
@@ -10,22 +11,22 @@ export class JwtKeepUpService {
     private configService: ConfigService, // Inject ConfigService
   ) {}
 
-  generateAccessToken(payload: any): Promise<string> {
+  generateAccessToken(payload: JwtPayloadInterfaces): Promise<string> {
     return this.nestJwtService.signAsync(payload);
   }
 
-  generateRefreshToken(payload: any): Promise<string> {
+  generateRefreshToken(payload: JwtPayloadInterfaces): Promise<string> {
     return this.nestJwtService.signAsync(payload, {
       secret: this.configService.get<string>('jwt.refresh_secret'), // Use ConfigService for refresh token secret
       expiresIn: this.configService.get<string>('jwt.refresh_expired'), // Set expiration for refresh tokens
     });
   }
 
-  verifyAccessToken(token: string): any {
+  verifyAccessToken(token: string): Promise<JwtPayloadInterfaces> {
     return this.nestJwtService.verifyAsync(token);
   }
 
-  verifyRefreshToken(token: string): any {
+  verifyRefreshToken(token: string): Promise<JwtPayloadInterfaces> {
     return this.nestJwtService.verifyAsync(token, {
       secret: this.configService.get<string>('jwt.refresh_secret'),
     });

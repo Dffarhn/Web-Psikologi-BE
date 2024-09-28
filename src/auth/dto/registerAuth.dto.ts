@@ -12,8 +12,8 @@ export class RegisterAuthDTO extends CreateUserDto {
   @IsUUID('4', { message: 'Faculty ID must be a valid UUID' })
   facultyId: string;
 
-  @IsNotEmpty({ message: 'Faculty is required' })
-  @isNotBlank({ message: 'Faculty cannot be blank' })
-  @IsUUID('4', { message: 'Faculty ID must be a valid UUID' })
+  @IsNotEmpty({ message: 'Role is required' })
+  @isNotBlank({ message: 'Role cannot be blank' })
+  @IsUUID('4', { message: 'Role ID must be a valid UUID' })
   roleId: string;
 }
