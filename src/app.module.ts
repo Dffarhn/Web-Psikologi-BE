@@ -4,16 +4,15 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { LoggingMiddleware } from './common/middleware/loggingRoute.middleware';
 import { DatabaseModule } from './database/database.module';
-import databaseConfig from './config/database.config';
-import { ConfigModule } from '@nestjs/config';
-import { validationSchema } from './config/validation.schema';
 import { UserModule } from './user/user.module';
 import { RolesModule } from './roles/roles.module';
 import { FacultysModule } from './facultys/facultys.module';
 import { EmailModule } from './email/email.module';
-import { JwtKeepUpModule } from './jwt/jwt.module';
-import { APP_GUARD } from '@nestjs/core';
-import { RolesGuard } from './roles/guards/role.guard';
+import { KuisionerModule } from './kuisioner/kuisioner.module';
+import { SubKuisionerModule } from './sub-kuisioner/sub-kuisioner.module';
+import { SymtompsModule } from './symtomps/symtomps.module';
+import { QuestionsModule } from './questions/questions.module';
+import { AnswersModule } from './answers/answers.module';
 
 @Module({
   imports: [
@@ -23,6 +22,11 @@ import { RolesGuard } from './roles/guards/role.guard';
     RolesModule,
     FacultysModule,
     EmailModule,
+    KuisionerModule,
+    SubKuisionerModule,
+    SymtompsModule,
+    QuestionsModule,
+    AnswersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
