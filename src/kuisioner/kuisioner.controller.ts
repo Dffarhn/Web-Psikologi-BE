@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   UseGuards,
@@ -36,11 +38,11 @@ export class KuisionerController {
     );
   }
 
-  @Get(':id')
+  @Get(':kuisionerId')
   @IsVerificationRequired(true)
   @Roles(ROLES.USER, ROLES.ADMIN, ROLES.SUPERADMIN)
   async getOneKuisionerController(
-    @Param('id') kuisionerId: string,
+    @Param('kuisionerId', new ParseUUIDPipe()) kuisionerId: string,
   ): Promise<ResponseApi<Kuisioner>> {
     const payload =
       await this.kuisionerService.getOneKuisionerById(kuisionerId);
@@ -66,11 +68,11 @@ export class KuisionerController {
     );
   }
 
-  @Patch(':id')
+  @Patch(':kuisionerId')
   @IsVerificationRequired(true)
   @Roles(ROLES.SUPERADMIN)
   async updateKuisionerController(
-    @Param('id') kuisionerId: string,
+    @Param('kuisionerId', new ParseUUIDPipe()) kuisionerId: string,
     @Body() updateKuisionerDTO: UpdateKuisionerDTO,
   ): Promise<ResponseApi<string>> {
     const payload = await this.kuisionerService.updateKuisioner(
@@ -82,5 +84,12 @@ export class KuisionerController {
       'Successfully Get Kuisioner',
       'payload',
     );
+  }
+
+  @Delete(':kuisionerId')
+  @IsVerificationRequired(true)
+  @Roles(ROLES.SUPERADMIN)
+  remove(@Param('kuisionerId', new ParseUUIDPipe()) kuisionerId:string) {
+    return this.kuisionerService.remove(kuisionerId);
   }
 }

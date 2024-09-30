@@ -47,4 +47,15 @@ export class KuisionerService {
       return await this.kuisionerRepository.save(kuisioner);
 
   }
+
+  async remove(id: string): Promise<string> {
+    const deleteResult = await this.kuisionerRepository.delete({ id });
+
+    // Check if the entity was found and deleted
+    if (deleteResult.affected === 0) {
+      throw new NotFoundException(`Kuisioner with ID ${id} not found`);
+    }
+
+    return `Kuisioner with ID #${id} has been removed successfully`;
+  }
 }

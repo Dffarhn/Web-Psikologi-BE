@@ -43,25 +43,36 @@ export class SubKuisionerService {
     return await this.subKuisionerRepository.save(data);
   }
 
-  async findOne(id: string): Promise<SubKuisioner> {
-    return this.subKuisionerRepository.findOne({
-      where: { id: id },
-      relations: ['symtompId','questions'],
+  async findOne(subKuisionerId: string): Promise<SubKuisioner> {
+    const payload = await this.subKuisionerRepository.findOne({
+      where: { id: subKuisionerId },
+      relations: ['symtompId', 'questions'],
     });
+
+    if (!payload) {
+      throw new NotFoundException("Sub Kuisioner Not Found")
+    }
+
+
+    console.log(payload)
+
+    return payload
   }
 
   async update(
-    id: string,
+    subKuisionerId: string,
     updateSubKuisionerDto: UpdateSubKuisionerDto,
   ): Promise<SubKuisioner> {
     // Find the existing SubKuisioner by ID
     const subKuisioner = await this.subKuisionerRepository.findOne({
-      where: { id },
+      where: { id: subKuisionerId },
       relations: ['kuisionerId', 'symtompId'],
     });
 
     if (!subKuisioner) {
-      throw new NotFoundException(`SubKuisioner with ID ${id} not found`);
+      throw new NotFoundException(
+        `SubKuisioner with ID ${subKuisionerId} not found`,
+      );
     }
 
     // Update the fields only if they are provided
@@ -71,7 +82,14 @@ export class SubKuisionerService {
     return await this.subKuisionerRepository.save(subKuisioner);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} subKuisioner`;
+  async remove(id: string): Promise<string> {
+    const deleteResult = await this.subKuisionerRepository.delete({ id });
+
+    // Check if the entity was found and deleted
+    if (deleteResult.affected === 0) {
+      throw new NotFoundException(`SubKuisioner with ID ${id} not found`);
+    }
+
+    return `SubKuisioner with ID #${id} has been removed successfully`;
   }
 }

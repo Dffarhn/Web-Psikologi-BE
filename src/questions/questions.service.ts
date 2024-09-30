@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
   BodyCreateQuestionDto,
   CreateQuestionDto,
@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import { SubKuisioner } from 'src/sub-kuisioner/entities/sub-kuisioner.entity';
 import { SubKuisionerService } from 'src/sub-kuisioner/sub-kuisioner.service';
 import { AnswersService } from 'src/answers/answers.service';
+import { CreateQuestionInterface } from './interfaces/createQuestion.interface';
 
 @Injectable()
 export class QuestionsService {
@@ -25,11 +26,11 @@ export class QuestionsService {
   ) {}
 
   async create(
-    id: string,
+    subKuisionerId: string,
     createQuestionDto: BodyCreateQuestionDto,
-  ): Promise<Question> {
+  ): Promise<CreateQuestionInterface> {
     const subKuisoner: SubKuisioner =
-      await this.subKuisionerService.findOne(id);
+      await this.subKuisionerService.findOne(subKuisionerId);
 
     const data: CreateQuestionDto = {
       question: createQuestionDto.question,
@@ -39,14 +40,25 @@ export class QuestionsService {
 
     await this.answerService.create(saveQuestion, createQuestionDto.answers);
 
-    return saveQuestion;
+    const payload: CreateQuestionInterface = {
+      id: saveQuestion.id,
+      createdAt: saveQuestion.createdAt,
+    };
+
+    return payload;
   }
 
-  async findOne(id: string): Promise<Question> {
-    return this.questionRepository.findOne({
-      where: { id: id },
+  async findOne(questionId: string): Promise<Question> {
+    const payload = await this.questionRepository.findOne({
+      where: { id: questionId },
       relations: ['answers'],
     });
+
+    if (!payload) {
+      throw new NotFoundException('Your Question Is Not Define');
+    }
+
+    return payload;
   }
 
   update(id: number, updateQuestionDto: UpdateQuestionDto) {
