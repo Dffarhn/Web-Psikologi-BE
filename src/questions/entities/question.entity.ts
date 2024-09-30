@@ -24,7 +24,7 @@ export class Question {
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
-  @ManyToOne(() => SubKuisioner, (subKuisioner) => subKuisioner.id)
+  @ManyToOne(() => SubKuisioner, (subKuisioner) => subKuisioner.id,{cascade:true, onDelete:'CASCADE',onUpdate:'CASCADE'})
   subKuisionerId: SubKuisioner;
 
   @OneToMany(() => Answer, (answer) => answer.questionId)

@@ -25,10 +25,10 @@ export class SubKuisioner {
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
-  @ManyToOne(() => Symtomp, (symtomp) => symtomp.subKuisioners)
+  @ManyToOne(() => Symtomp, (symtomp) => symtomp.subKuisioners,{cascade:true, onDelete:'CASCADE',onUpdate:'CASCADE'})
   symtompId: Symtomp;
 
-  @ManyToOne(() => Kuisioner, (kuisioner) => kuisioner.id)
+  @ManyToOne(() => Kuisioner, (kuisioner) => kuisioner.id,{cascade:true, onDelete:'CASCADE',onUpdate:'CASCADE'})
   kuisionerId: Kuisioner;
 
   @OneToMany(() => Question, (question) => question.subKuisionerId)

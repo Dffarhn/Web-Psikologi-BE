@@ -8,6 +8,7 @@ import {
   Delete,
   HttpStatus,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { SubKuisionerService } from './sub-kuisioner.service';
 import {
@@ -28,11 +29,11 @@ import { ROLES } from 'src/roles/group/role.enum';
 export class SubKuisionerController {
   constructor(private readonly subKuisionerService: SubKuisionerService) {}
 
-  @Post(':id')
+  @Post(':kuisionerId')
   @IsVerificationRequired(true)
   @Roles(ROLES.SUPERADMIN)
   async create(
-    @Param('id') kuisionerId: string,
+    @Param('kuisionerId', new ParseUUIDPipe()) kuisionerId: string,
     @Body() createSubKuisionerDto: BodyCreateSubKuisionerDto,
   ): Promise<ResponseApi<SubKuisioner>> {
     const payload = await this.subKuisionerService.create(
@@ -47,9 +48,11 @@ export class SubKuisionerController {
     );
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<ResponseApi<SubKuisioner>> {
-    const payload = await this.subKuisionerService.findOne(id);
+  @Get(':subKuisionerId')
+  @IsVerificationRequired(true)
+  @Roles(ROLES.USER,ROLES.ADMIN,ROLES.SUPERADMIN)
+  async findOne(@Param('subKuisionerId', new ParseUUIDPipe()) subKuisionerId:string): Promise<ResponseApi<SubKuisioner>> {
+    const payload = await this.subKuisionerService.findOne(subKuisionerId);
 
     return new ResponseApi(
       HttpStatus.OK,
@@ -58,16 +61,20 @@ export class SubKuisionerController {
     );
   }
 
-  @Patch(':id')
+  @Patch(':subKuisionerId')
+  @IsVerificationRequired(true)
+  @Roles(ROLES.SUPERADMIN)
   update(
-    @Param('id') id: string,
+    @Param('subKuisionerId', new ParseUUIDPipe()) subKuisionerId:string,
     @Body() updateSubKuisionerDto: UpdateSubKuisionerDto,
   ) {
-    return this.subKuisionerService.update(id, updateSubKuisionerDto);
+    return this.subKuisionerService.update(subKuisionerId, updateSubKuisionerDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.subKuisionerService.remove(+id);
+  @Delete(':subKuisionerId')
+  @IsVerificationRequired(true)
+  @Roles(ROLES.SUPERADMIN)
+  remove(@Param('subKuisionerId', new ParseUUIDPipe()) subKuisionerId:string) {
+    return this.subKuisionerService.remove(subKuisionerId);
   }
 }
