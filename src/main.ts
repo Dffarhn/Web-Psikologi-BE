@@ -2,10 +2,20 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/response/error.filter';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.use(cookieParser())
+
+  app.enableCors({
+    origin: '*', // Frontend domains or '*'
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+  });
+  
+  
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -14,6 +24,7 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
   app.useGlobalFilters(new HttpExceptionFilter());
 
   app.enableVersioning({

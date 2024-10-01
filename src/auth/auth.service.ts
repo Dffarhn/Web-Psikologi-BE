@@ -9,8 +9,6 @@ import {
   NotFoundException,
   Res,
 } from '@nestjs/common';
-import { RegisterAuthDTO } from './dto/registerAuth.dto';
-import { LoginAuthDTO } from './dto/loginAuth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { DataSource, Repository } from 'typeorm';
@@ -26,6 +24,9 @@ import {
 import { RolesService } from 'src/roles/roles.service';
 import { JwtKeepUpService } from 'src/jwt/jwt.service';
 import { UserId } from 'src/user/decorator/userId.decorator';
+import { JwtPayloadInterfaces } from 'src/jwt/interfaces/jwtPayload.interface';
+import { RegisterRequestDTO } from './dto/request/registerRequest.dto';
+import { LoginRequestDTO } from './dto/request/loginRequest.dto';
 
 @Injectable()
 export class AuthService {
@@ -67,7 +68,7 @@ export class AuthService {
   }
 
   async register(
-    registerAuthDTO: RegisterAuthDTO,
+    registerAuthDTO: RegisterRequestDTO,
   ): Promise<RegisterInterfaces> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -145,12 +146,8 @@ export class AuthService {
       const accessToken =
         await this.jwtKeepUpService.generateAccessToken(payload);
 
-      const refreshToken =
-        await this.jwtKeepUpService.generateRefreshToken(payload);
-
       const data: RegisterInterfaces = {
         access_token: accessToken,
-        refresh_token: refreshToken,
         created_at: new Date(),
       };
 
@@ -172,7 +169,7 @@ export class AuthService {
     }
   }
 
-  async login(loginAuthDTO: LoginAuthDTO): Promise<LoginInterfaces> {
+  async login(loginAuthDTO: LoginRequestDTO): Promise<LoginInterfaces> {
     const user = await this.userService.findByEmail(loginAuthDTO.email);
 
     if (!user) {
@@ -188,7 +185,7 @@ export class AuthService {
       throw new ForbiddenException('Invalid credentials');
     }
 
-    const payload = {
+    const payload: JwtPayloadInterfaces = {
       id: user.id,
       user: user.username,
       role: user.role.id,
@@ -212,30 +209,32 @@ export class AuthService {
     return data;
   }
 
-
-
   async resendConfirmation(@UserId() userId: string): Promise<boolean> {
     // Find the user by ID
     const dataUser = await this.userService.findById(userId);
     if (!dataUser) {
       throw new NotFoundException('User not found');
     }
-  
+
     // Find the corresponding auth record
     const updateTokenAuth = await this.authRepository.findOne({
       where: { id: dataUser.auth.id },
     });
-  
+
     if (!updateTokenAuth) {
       throw new NotFoundException('Auth record not found');
     }
-  
+
+    if (updateTokenAuth.isVerification) {
+      throw new ForbiddenException('Your Account Is Verified')
+    }
+
     // Generate a new confirmation token
     updateTokenAuth.token = this.generateTokenConfirmation();
-  
+
     // Save the updated auth record with the new token
     await this.authRepository.save(updateTokenAuth);
-  
+
     // Send the confirmation email
     await this.emailService.sendConfirmationEmail(
       dataUser.email,
@@ -243,10 +242,9 @@ export class AuthService {
       updateTokenAuth.token,
       dataUser.auth.id,
     );
-  
+
     return true;
   }
-  
 
   async confirmEmail(authId: string, token: string): Promise<boolean> {
     try {
@@ -281,6 +279,26 @@ export class AuthService {
         'An unexpected error occurred during registration. Please try again later.',
       );
     }
+  }
+
+  async refreshToken(user: any): Promise<RefreshInterfaces> {
+    const payload: JwtPayloadInterfaces = {
+      id: user.id,
+      user: user.username,
+      role: user.role,
+      iat: Math.floor(Date.now() / 1000),
+      iss: 'ApiKeepUp',
+      aud: 'KeepUp',
+    };
+
+    // Step 4: Generate access and refresh tokens
+    const accessToken =
+      await this.jwtKeepUpService.generateAccessToken(payload);
+
+    const data: RefreshInterfaces = {
+      access_token: accessToken,
+    };
+    return data;
   }
 
   private generateTokenConfirmation(): string {

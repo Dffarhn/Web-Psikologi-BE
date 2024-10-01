@@ -3,7 +3,11 @@ interface LoginInterfaces {
     refresh_token: string;
 }
 
-interface RegisterInterfaces extends LoginInterfaces{
+interface RegisterInterfaces {
+    access_token:string
     created_at: Date
 }
-  
+
+interface RefreshInterfaces {
+    access_token:string
+}
