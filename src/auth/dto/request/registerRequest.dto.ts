@@ -2,7 +2,7 @@ import { IsNotEmpty, IsUUID } from 'class-validator';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { isNotBlank } from 'src/common/validatorCustom/isNotBlank.validator';
 
-export class RegisterAuthDTO extends CreateUserDto {
+export class RegisterRequestDTO extends CreateUserDto {
   @IsNotEmpty({ message: 'Password confirmation is required' })
   @isNotBlank({ message: 'Password confirmation cannot be blank' })
   retypedpassword: string;
