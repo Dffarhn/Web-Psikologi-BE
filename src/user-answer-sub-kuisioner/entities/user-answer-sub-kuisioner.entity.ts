@@ -19,10 +19,11 @@ export class UserAnswerSubKuisioner {
     type: 'enum',
     enum: Level,
     enumName: 'level_enum', // Optional: for defining the enum name in the database
+    nullable:true
   })
   level: Level;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', nullable:true})
   score: number;
 
   @ManyToOne(() => SubKuisioner, (subKuisioner) => subKuisioner.id, {
