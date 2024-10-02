@@ -1,5 +1,5 @@
 import { Answer } from 'src/answers/entities/answer.entity';
-import { TakeKuisioner } from 'src/take-kuisioner/entities/take-kuisioner.entity';
+import { UserAnswerSubKuisioner } from 'src/user-answer-sub-kuisioner/entities/user-answer-sub-kuisioner.entity';
 import { ManyToOne, PrimaryGeneratedColumn, Entity } from 'typeorm';
 
 @Entity()
@@ -8,17 +8,17 @@ export class UserAnswerKuisioner {
   id: string;
 
   @ManyToOne(
-    () => TakeKuisioner,
-    (takeKuisioner) => takeKuisioner.userAnswerKuisioner,
+    () => UserAnswerSubKuisioner,
+    (userAnswerSubKuisioner) => userAnswerSubKuisioner.userAnswerKuisioners, // Updated
     {
       cascade: true,
       onDelete: 'CASCADE',
       onUpdate: 'CASCADE',
     },
   )
-  takeKuisioner: TakeKuisioner;
+  userAnswerSubKuisioner: UserAnswerSubKuisioner;
 
-  @ManyToOne(() => Answer, (answer) => answer.id, {
+  @ManyToOne(() => Answer, (answer) => answer.id, { // Updated
     cascade: true,
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
