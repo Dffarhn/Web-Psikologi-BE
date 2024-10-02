@@ -15,7 +15,7 @@ import { QuestionsModule } from './questions/questions.module';
 import { AnswersModule } from './answers/answers.module';
 import { TakeKuisionerModule } from './take-kuisioner/take-kuisioner.module';
 import { UserAnswerKuisionerModule } from './user-answer-kuisioner/user-answer-kuisioner.module';
-import { ScoreResultsModule } from './score-results/score-results.module';
+import { UserAnswerSubKuisionerModule } from './user-answer-sub-kuisioner/user-answer-sub-kuisioner.module';
 
 @Module({
   imports: [
@@ -32,7 +32,7 @@ import { ScoreResultsModule } from './score-results/score-results.module';
     AnswersModule,
     TakeKuisionerModule,
     UserAnswerKuisionerModule,
-    ScoreResultsModule,
+    UserAnswerSubKuisionerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,6 +1,5 @@
 import { Kuisioner } from 'src/kuisioner/entity/kuisioner.entity';
-import { ScoreResult } from 'src/score-results/entities/score-result.entity';
-import { UserAnswerKuisioner } from 'src/user-answer-kuisioner/entities/user-answer-kuisioner.entity';
+import { UserAnswerSubKuisioner } from 'src/user-answer-sub-kuisioner/entities/user-answer-sub-kuisioner.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
@@ -39,12 +38,6 @@ export class TakeKuisioner {
   })
   user: User;
 
-  @OneToMany(() => ScoreResult, (scoreResult) => scoreResult.takeKuisioner)
-  scoreResults: ScoreResult[];
-
-  @OneToMany(
-    () => UserAnswerKuisioner,
-    (userAnswerKuisioner) => userAnswerKuisioner.takeKuisioner,
-  )
-  userAnswerKuisioner: UserAnswerKuisioner[];
+  @OneToMany(() => UserAnswerSubKuisioner, (userAnswerSubKuisioner) => userAnswerSubKuisioner.takeKuisioner)
+  userAnswerSubKuisioner: UserAnswerSubKuisioner[];
 }
