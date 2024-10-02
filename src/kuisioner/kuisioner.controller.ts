@@ -18,8 +18,8 @@ import { RolesGuard } from 'src/roles/guards/role.guard';
 import { IsVerificationRequired } from 'src/jwt/decorator/jwtRoute.decorator';
 import { Roles } from 'src/roles/decorators/role.decorator';
 import { ROLES } from 'src/roles/group/role.enum';
-import { CreateKuisionerDTO } from './dto/createKuisioner.dto';
-import { UpdateKuisionerDTO } from './dto/updateKuisioner.dto';
+import { CreateKuisionerDTO } from './dto/request/createKuisioner.dto';
+import { UpdateKuisionerDTO } from './dto/request/updateKuisioner.dto';
 
 @Controller({ path: 'kuisioner', version: '1' })
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -89,7 +89,7 @@ export class KuisionerController {
   @Delete(':kuisionerId')
   @IsVerificationRequired(true)
   @Roles(ROLES.SUPERADMIN)
-  remove(@Param('kuisionerId', new ParseUUIDPipe()) kuisionerId:string) {
+  remove(@Param('kuisionerId', new ParseUUIDPipe()) kuisionerId: string) {
     return this.kuisionerService.remove(kuisionerId);
   }
 }
