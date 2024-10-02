@@ -2,7 +2,7 @@ import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Faculty } from './entities/faculty.entity';
-import { CreateFacultyDTO } from './dto/createFaculty.dto';
+import { CreateFacultyDTO } from './dto/request/createFaculty.dto';
 
 @Injectable()
 export class FacultysService {

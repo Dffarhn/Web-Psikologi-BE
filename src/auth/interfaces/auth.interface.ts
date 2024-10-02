@@ -1,13 +1,13 @@
-interface LoginInterfaces {
+interface LoginData {
     access_token: string; // Define the type of the access_token, for example, a string.
     refresh_token: string;
 }
 
-interface RegisterInterfaces {
+interface RegisterData {
     access_token:string
     created_at: Date
 }
 
-interface RefreshInterfaces {
+interface RefreshData {
     access_token:string
 }

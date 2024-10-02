@@ -2,9 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Kuisioner } from './entity/kuisioner.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateKuisionerDTO } from './dto/createKuisioner.dto';
+import { CreateKuisionerDTO } from './dto/request/createKuisioner.dto';
 import { UpdateAnswerDto } from 'src/answers/dto/update-answer.dto';
-import { UpdateKuisionerDTO } from './dto/updateKuisioner.dto';
+import { UpdateKuisionerDTO } from './dto/request/updateKuisioner.dto';
 
 @Injectable()
 export class KuisionerService {
@@ -20,7 +20,7 @@ export class KuisionerService {
   async getOneKuisionerById(kuisionerId: string): Promise<Kuisioner> {
     return await this.kuisionerRepository.findOne({
       where: { id: kuisionerId },
-      relations:['subKuisioners']
+      relations: ['subKuisioners'],
     });
   }
 
@@ -30,22 +30,22 @@ export class KuisionerService {
     return await this.kuisionerRepository.save(createAnswerDTO);
   }
 
-
-  async updateKuisioner(kuisionerId:string,updateKuisionerDTO:UpdateKuisionerDTO){
-
+  async updateKuisioner(
+    kuisionerId: string,
+    updateKuisionerDTO: UpdateKuisionerDTO,
+  ) {
     const kuisioner = await this.kuisionerRepository.findOne({
-        where: { id: kuisionerId },
-      });
-  
-      if (!kuisioner) {
-        throw new NotFoundException(`Kuisioner with ID ${kuisionerId} not found`);
-      }
-  
-      // Update the fields only if they are provided
-      Object.assign(kuisioner, updateKuisionerDTO);
-  
-      return await this.kuisionerRepository.save(kuisioner);
+      where: { id: kuisionerId },
+    });
 
+    if (!kuisioner) {
+      throw new NotFoundException(`Kuisioner with ID ${kuisionerId} not found`);
+    }
+
+    // Update the fields only if they are provided
+    Object.assign(kuisioner, updateKuisionerDTO);
+
+    return await this.kuisionerRepository.save(kuisioner);
   }
 
   async remove(id: string): Promise<string> {

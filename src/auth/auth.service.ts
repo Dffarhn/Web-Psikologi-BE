@@ -69,7 +69,7 @@ export class AuthService {
 
   async register(
     registerAuthDTO: RegisterRequestDTO,
-  ): Promise<RegisterInterfaces> {
+  ): Promise<RegisterData> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -146,7 +146,7 @@ export class AuthService {
       const accessToken =
         await this.jwtKeepUpService.generateAccessToken(payload);
 
-      const data: RegisterInterfaces = {
+      const data: RegisterData = {
         access_token: accessToken,
         created_at: new Date(),
       };
@@ -169,7 +169,7 @@ export class AuthService {
     }
   }
 
-  async login(loginAuthDTO: LoginRequestDTO): Promise<LoginInterfaces> {
+  async login(loginAuthDTO: LoginRequestDTO): Promise<LoginData> {
     const user = await this.userService.findByEmail(loginAuthDTO.email);
 
     if (!user) {
@@ -201,7 +201,7 @@ export class AuthService {
     const refreshToken =
       await this.jwtKeepUpService.generateRefreshToken(payload);
 
-    const data: LoginInterfaces = {
+    const data: LoginData = {
       access_token: accessToken,
       refresh_token: refreshToken,
     };
@@ -281,7 +281,7 @@ export class AuthService {
     }
   }
 
-  async refreshToken(user: any): Promise<RefreshInterfaces> {
+  async refreshToken(user: any): Promise<RefreshData> {
     const payload: JwtPayloadInterfaces = {
       id: user.id,
       user: user.username,
@@ -295,7 +295,7 @@ export class AuthService {
     const accessToken =
       await this.jwtKeepUpService.generateAccessToken(payload);
 
-    const data: RefreshInterfaces = {
+    const data: RefreshData = {
       access_token: accessToken,
     };
     return data;
