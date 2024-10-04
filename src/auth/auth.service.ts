@@ -14,7 +14,6 @@ import { User } from 'src/user/entities/user.entity';
 import { DataSource, Repository } from 'typeorm';
 import { Auth } from './entities/auth.entity';
 import { randomUUID } from 'crypto';
-import { FacultysService } from 'src/facultys/facultys.service';
 import { EmailService } from 'src/email/email.service';
 import { UserService } from 'src/user/user.service';
 import {
@@ -33,9 +32,6 @@ export class AuthService {
   constructor(
     @InjectRepository(Auth)
     private authRepository: Repository<Auth>,
-
-    @Inject(FacultysService)
-    private facultyService: FacultysService,
 
     @Inject(EmailService)
     private emailService: EmailService,
@@ -67,9 +63,7 @@ export class AuthService {
     return savedAuth;
   }
 
-  async register(
-    registerAuthDTO: RegisterRequestDTO,
-  ): Promise<RegisterData> {
+  async register(registerAuthDTO: RegisterRequestDTO): Promise<RegisterData> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -88,14 +82,6 @@ export class AuthService {
         throw new BadRequestException('Passwords do not match');
       }
 
-      // Check if faculty exists
-      const faculty = await this.facultyService.getFacultyById(
-        registerAuthDTO.facultyId,
-      );
-      if (!faculty) {
-        throw new BadRequestException('Invalid Faculty ID');
-      }
-
       const role = await this.roleService.getRoleById(registerAuthDTO.roleId);
       if (!role) {
         throw new BadRequestException('Invalid Role ID');
@@ -104,23 +90,21 @@ export class AuthService {
       // Hash the password
       const hashedPassword = await hashPassword(registerAuthDTO.password);
 
-      // Create a new auth record with token
-      const authRecord = await this.createAuth();
+      // Create a new auth record WITHIN the transaction
+      const authRecord = new Auth(); // Assuming Auth is the entity for auth records
+      authRecord.token = this.generateTokenConfirmation(); // Generate token logic
+      await queryRunner.manager.save(Auth, authRecord); // Save it within the transaction
 
       // Create an instance of the User entity
       const newUser = new User();
       newUser.email = registerAuthDTO.email;
       newUser.username = registerAuthDTO.username;
       newUser.password = hashedPassword;
-      newUser.birthDate = new Date(registerAuthDTO.birthDate);
-      newUser.yearEntry = registerAuthDTO.yearEntry;
-      newUser.faculty = faculty;
-      newUser.gender = registerAuthDTO.gender;
-      newUser.auth = authRecord;
+      newUser.auth = authRecord; // Link the newly created auth record
       newUser.role = role;
 
       // Save the user using the query runner's transactional method
-      await queryRunner.manager.save(User, newUser); // Pass the entity and instance to save
+      await queryRunner.manager.save(User, newUser);
 
       // Send the confirmation email
       await this.emailService.sendConfirmationEmail(
@@ -157,9 +141,8 @@ export class AuthService {
       // Roll back the transaction in case of any failure
       await queryRunner.rollbackTransaction();
 
-      // Check if the error is an instance of HttpException (covers all known HTTP exceptions)
       if (error instanceof HttpException) {
-        throw error; // Re-throw all known HTTP exceptions (Forbidden, Unauthorized, BadRequest, etc.)
+        throw error;
       }
 
       throw new InternalServerErrorException(error.message);
@@ -226,7 +209,7 @@ export class AuthService {
     }
 
     if (updateTokenAuth.isVerification) {
-      throw new ForbiddenException('Your Account Is Verified')
+      throw new ForbiddenException('Your Account Is Verified');
     }
 
     // Generate a new confirmation token

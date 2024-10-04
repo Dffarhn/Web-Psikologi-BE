@@ -17,16 +17,19 @@ export class User {
   @Column({ type: 'varchar' })
   password: string;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'varchar', nullable:true })
+  nim: string;
+
+  @Column({ type: 'date', nullable:true })
   birthDate: Date;
 
-  @Column({ type: 'integer' })
+  @Column({ type: 'integer', nullable:true })
   yearEntry: number;
 
-  @ManyToOne(() => Role, (role) => role.users, { nullable: true, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @ManyToOne(() => Role, (role) => role.users, { nullable: false, onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   role: Role;
 
-  @ManyToOne(() => Auth, (auth) => auth.users, { nullable: true , onDelete:'CASCADE', onUpdate:'CASCADE'}) // Assuming an Auth entity
+  @ManyToOne(() => Auth, (auth) => auth.users, { nullable: false , onDelete:'CASCADE', onUpdate:'CASCADE'}) // Assuming an Auth entity
   auth: Auth;
 
   @Column({type:'uuid', nullable: true, unique:true })
@@ -44,6 +47,7 @@ export class User {
   @Column({
     type: 'enum',
     enum: ['Laki-Laki', 'Perempuan'],
+    nullable: true
   })
   gender: 'Laki-Laki' | 'Perempuan';
 }

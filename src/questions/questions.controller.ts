@@ -10,6 +10,8 @@ import {
   UseGuards,
   HttpException,
   InternalServerErrorException,
+  Delete,
+  Patch,
 } from '@nestjs/common';
 import { QuestionsService } from './questions.service';
 import { JwtAuthGuard } from 'src/jwt/guards/jwt-auth.guard';
@@ -21,6 +23,7 @@ import { ResponseApi } from 'src/common/response/responseApi.format';
 import { Question } from './entities/question.entity';
 import { BodyCreateQuestionDto } from './dto/create-question.dto';
 import { CreateQuestionInterface } from './interfaces/createQuestion.interface';
+import { BodyUpdateQuestionDto } from './dto/update-question.dto';
 
 @Controller({ path: 'questions', version: '1' })
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -50,11 +53,11 @@ export class QuestionsController {
     }
   }
 
-  @Post(':subKuisionerId')
+  @Post(':questionId')
   @IsVerificationRequired(true)
   @Roles(ROLES.SUPERADMIN)
   async create(
-    @Param('subKuisionerId', new ParseUUIDPipe()) subKuisionerId: string,
+    @Param('subKuisionerId') subKuisionerId: string,
     @Body() createQuestionDTO: BodyCreateQuestionDto,
   ): Promise<ResponseApi<CreateQuestionInterface>> {
     try {
@@ -62,6 +65,56 @@ export class QuestionsController {
         subKuisionerId,
         createQuestionDTO,
       );
+      return new ResponseApi(
+        HttpStatus.CREATED,
+        'Successfully created question',
+        payload,
+      );
+    } catch (error) {
+      // Check if the error is an instance of HttpException (covers all known HTTP exceptions)
+      if (error instanceof HttpException) {
+        throw error; // Re-throw all known HTTP exceptions (Forbidden, Unauthorized, BadRequest, etc.)
+      }
+
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Patch(':questionId')
+  @IsVerificationRequired(true)
+  @Roles(ROLES.SUPERADMIN)
+  async update(
+    @Param('questionId') questionId: string,
+    @Body() bodyUpdateQuestionDto: BodyUpdateQuestionDto,
+  ): Promise<ResponseApi<Question>> {
+    try {
+      const payload = await this.questionService.update(
+        questionId,
+        bodyUpdateQuestionDto,
+      );
+      return new ResponseApi(
+        HttpStatus.CREATED,
+        'Successfully created question',
+        payload,
+      );
+    } catch (error) {
+      // Check if the error is an instance of HttpException (covers all known HTTP exceptions)
+      if (error instanceof HttpException) {
+        throw error; // Re-throw all known HTTP exceptions (Forbidden, Unauthorized, BadRequest, etc.)
+      }
+
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  @Delete(':questionId')
+  @IsVerificationRequired(true)
+  @Roles(ROLES.SUPERADMIN)
+  async remove(
+    @Param('questionId') questionId: string,
+  ): Promise<ResponseApi<Date>> {
+    try {
+      const payload = await this.questionService.remove(questionId);
       return new ResponseApi(
         HttpStatus.CREATED,
         'Successfully created question',

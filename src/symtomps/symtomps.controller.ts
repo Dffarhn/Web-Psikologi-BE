@@ -25,8 +25,12 @@ export class SymtompsController {
   }
 
   @Get()
-  findAll() {
-    return this.symtompsService.findAll();
+  @IsVerificationRequired(true)
+  @Roles(ROLES.SUPERADMIN)
+  async findAll():Promise<ResponseApi<Symtomp[]>> {
+    const payload = await this.symtompsService.findAll();
+
+    return new ResponseApi(HttpStatus.OK,"Successfully Get All Symtomp",payload)
   }
 
   @Get(':id')
