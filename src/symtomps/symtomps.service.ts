@@ -16,8 +16,8 @@ export class SymtompsService {
     return await this.symtompRepository.save(createSymtompDto);
   }
 
-  findAll() {
-    return `This action returns all symtomps`;
+  async findAll():Promise<Symtomp[]> {
+    return await this.symtompRepository.find();
   }
 
   async findOneById(id: string): Promise<Symtomp> {

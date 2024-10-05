@@ -75,21 +75,24 @@ export class AuthController {
     return new ResponseApi(HttpStatus.OK, 'Login Successfully', payload);
   }
 
+  @Post('resendConfirmation')
   @UseGuards(JwtAuthGuard)
   @IsVerificationRequired(false)
-  @Post('resendConfirmation')
   async resendConfirmation(
     @UserId() userId: string,
   ): Promise<ResponseApi<String>> {
     const resendEmailConfirmation =
       await this.authService.resendConfirmation(userId);
-    return new ResponseApi(HttpStatus.OK, 'Successfully Resend Confirmation Email');
+    return new ResponseApi(
+      HttpStatus.OK,
+      'Successfully Resend Confirmation Email',
+    );
   }
 
   @Get('confirm')
   async confirmationEmail(
     @Res() response: Response,
-    @Query('authId', new ParseUUIDPipe()) authId: string,
+    @Query('idAuth', new ParseUUIDPipe()) authId: string,
     @Query('token', new ParseUUIDPipe()) token: string,
   ) {
     // Call the service to confirm the email

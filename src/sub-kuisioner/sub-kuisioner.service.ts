@@ -46,15 +46,12 @@ export class SubKuisionerService {
   async findOne(subKuisionerId: string): Promise<SubKuisioner> {
     const payload = await this.subKuisionerRepository.findOne({
       where: { id: subKuisionerId },
-      relations: ['symtompId', 'questions'],
+      relations: ['symtompId','questions'],
     });
 
     if (!payload) {
       throw new NotFoundException("Sub Kuisioner Not Found")
     }
-
-
-    console.log(payload)
 
     return payload
   }

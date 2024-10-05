@@ -14,7 +14,7 @@ import { Gender } from 'src/common/group/gender.enum';
 import { isNotBlank } from 'src/common/validatorCustom/isNotBlank.validator';
 import { Role } from 'src/roles/entities/role.entity';
 
-export class CreateUserDto {
+export class CreateUserRequestDto {
   @IsEmail({}, { message: 'Invalid email format' })
   @IsNotEmpty({ message: 'Email is required' })
   @isNotBlank({ message: 'Email cannot be blank' })
@@ -47,9 +47,6 @@ export class CreateUserDto {
   @IsDateString({}, { message: 'Birth date must be a valid date string' }) // Ensures it's a valid date string (ISO format)
   birthDate: Date;
 
-  @IsNotEmpty({ message: 'auth is required' })
-  auth?: Auth;
-
   @IsNotEmpty({ message: 'idPsikologi is required' })
   @IsOptional()
   idPsikologi?: string;
@@ -57,8 +54,10 @@ export class CreateUserDto {
   @IsNotEmpty({ message: 'role is required' })
   role: Role;
 
-  @IsNotEmpty({ message: 'Faculty is required' })
-  faculty: Faculty;
+  @IsNotEmpty({ message: 'FacultyId is required' })
+  @Length(8, 32, { message: 'FacultyId must be between 8 and 32 characters' })
+  @isNotBlank({ message: 'FacultyId cannot be blank' })
+  facultyId: string;
 
   @IsNotEmpty({ message: 'Gender is required' })
   @isNotBlank({ message: 'Gender cannot be blank' })

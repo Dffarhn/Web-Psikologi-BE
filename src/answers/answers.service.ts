@@ -1,28 +1,39 @@
-import { Injectable } from '@nestjs/common';
-import { BodyCreateAnswerDto, CreateAnswerDto } from './dto/create-answer.dto';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { CreateAnswerDto } from './dto/create-answer.dto';
 import { UpdateAnswerDto } from './dto/update-answer.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Answer } from './entities/answer.entity';
 import { Repository } from 'typeorm';
 import { Question } from 'src/questions/entities/question.entity';
+import { QuestionsService } from 'src/questions/questions.service';
 
 @Injectable()
 export class AnswersService {
   constructor(
     @InjectRepository(Answer)
     private readonly answerRepository: Repository<Answer>,
+
+    @Inject(forwardRef(() => QuestionsService))
+    private questionsService: QuestionsService, // Inject the QuestionsService
   ) {}
 
   async create(
-    questionId: Question,
+    questionId: string,
     createAnswerDto: CreateAnswerDto[],
   ): Promise<Answer[]> {
+    const dataQuestion = await this.questionsService.findOne(questionId);
+
     // Create and save answers
     const answers = createAnswerDto.map((dto: CreateAnswerDto) => {
       return this.answerRepository.create({
         answer: dto.answer, // Assuming answerText is the field in CreateAnswerDto
         score: dto.score, // Set the related question
-        questionId: questionId,
+        questionId: dataQuestion,
       });
     });
 
@@ -38,8 +49,40 @@ export class AnswersService {
     return `This action returns a #${id} answer`;
   }
 
-  update(id: number, updateAnswerDto: UpdateAnswerDto) {
-    return `This action updates a #${id} answer`;
+  async updateAnswersForQuestion(
+    questionId: string,
+    updateAnswerDtos: UpdateAnswerDto[],
+  ): Promise<Answer[]> {
+    // Find the existing question (to ensure the question exists)
+    const dataQuestion = await this.questionsService.findOne(questionId);
+
+    if (!dataQuestion) {
+      throw new NotFoundException('Question Not Found');
+    }
+
+    // Find all existing answers for this question
+    const existingAnswers = dataQuestion.answers;
+
+    // Map over the DTOs and update each corresponding answer
+    const updatedAnswers: Answer[] = [];
+
+    for (const dto of updateAnswerDtos) {
+      // Find the specific answer to update
+      const answer = existingAnswers.find((a) => a.id === dto.id);
+
+      if (!answer) {
+        throw new NotFoundException(`Answer with ID ${dto.id} not found`);
+      }
+
+      // Update the answer properties
+      answer.answer = dto.answer;
+      answer.score = dto.score;
+
+      // Save the updated answer
+      updatedAnswers.push(await this.answerRepository.save(answer));
+    }
+
+    return updatedAnswers;
   }
 
   remove(id: number) {
