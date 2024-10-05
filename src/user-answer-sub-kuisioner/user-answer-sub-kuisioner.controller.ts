@@ -35,7 +35,7 @@ export class UserAnswerSubKuisionerController {
   ) {
     return this.userAnswerSubKuisionerService.create(
       takeKuisionerId,
-      createUserAnswerSubKuisionerDto.subKuisionerId,
+      createUserAnswerSubKuisionerDto,
       userId,
     );
   }
