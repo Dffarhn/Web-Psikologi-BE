@@ -45,8 +45,17 @@ export class AnswersService {
     return `This action returns all answers`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} answer`;
+  async findOne(id: string):Promise<Answer> {
+
+
+    const data = await this.answerRepository.findOne({where:{id:id}}) 
+
+    if (!data) {
+      throw new NotFoundException("Answer Not Found")
+      
+    }
+
+    return data
   }
 
   async updateAnswersForQuestion(

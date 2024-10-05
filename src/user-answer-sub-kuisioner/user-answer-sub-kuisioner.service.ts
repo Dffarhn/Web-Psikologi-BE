@@ -1,5 +1,6 @@
 import {
   ForbiddenException,
+  forwardRef,
   Inject,
   Injectable,
   NotFoundException,
@@ -9,6 +10,8 @@ import { UserAnswerSubKuisioner } from './entities/user-answer-sub-kuisioner.ent
 import { Repository } from 'typeorm';
 import { TakeKuisionerService } from 'src/take-kuisioner/take-kuisioner.service';
 import { SubKuisionerService } from 'src/sub-kuisioner/sub-kuisioner.service';
+import { UserAnswerKuisionerService } from 'src/user-answer-kuisioner/user-answer-kuisioner.service';
+import { CreateUserAnswerSubKuisionerDTO } from './dto/request/create-user-answer-sub-kuisioner.dto';
 
 @Injectable()
 export class UserAnswerSubKuisionerService {
@@ -21,14 +24,19 @@ export class UserAnswerSubKuisionerService {
 
     @Inject(SubKuisionerService)
     private readonly subKuisionerService: SubKuisionerService,
+
+    @Inject(forwardRef(() => UserAnswerKuisionerService))
+    private readonly userAnswerKuisionerService: UserAnswerKuisionerService,
   ) {}
 
   async create(
     takeKuisionerId: string,
-    subKuisionerId: string,
+    subKuisionerData: CreateUserAnswerSubKuisionerDTO,
     userId: string,
   ): Promise<string> {
-    const subKuisioner = await this.subKuisionerService.findOne(subKuisionerId);
+    const subKuisioner = await this.subKuisionerService.findOne(
+      subKuisionerData.subKuisionerId,
+    );
     if (!subKuisioner) {
       throw new NotFoundException('The Sub Kuisioner Is Not Found');
     }
@@ -52,6 +60,11 @@ export class UserAnswerSubKuisionerService {
     const createTakeSubKuisioner =
       await this.userAnswerSubKuisionerRepository.save(data);
 
+    await this.userAnswerKuisionerService.create(
+      createTakeSubKuisioner.id,
+      subKuisionerData.userAnswers,
+    );
+
     return createTakeSubKuisioner.id;
   }
 
@@ -59,8 +72,16 @@ export class UserAnswerSubKuisionerService {
     return `This action returns all userAnswerSubKuisioner`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} userAnswerSubKuisioner`;
+  async findOne(id: string): Promise<UserAnswerSubKuisioner> {
+    const data = await this.userAnswerSubKuisionerRepository.findOne({
+      where: { id: id },
+    });
+
+    if (!data) {
+      throw new NotFoundException('Take Sub Kuisioner Not Found');
+    }
+
+    return data;
   }
 
   update(id: number) {
