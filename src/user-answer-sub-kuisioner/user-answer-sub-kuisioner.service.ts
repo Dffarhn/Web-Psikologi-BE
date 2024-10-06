@@ -1,13 +1,15 @@
 import {
   ForbiddenException,
   forwardRef,
+  HttpException,
   Inject,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserAnswerSubKuisioner } from './entities/user-answer-sub-kuisioner.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { TakeKuisionerService } from 'src/take-kuisioner/take-kuisioner.service';
 import { SubKuisionerService } from 'src/sub-kuisioner/sub-kuisioner.service';
 import { UserAnswerKuisionerService } from 'src/user-answer-kuisioner/user-answer-kuisioner.service';
@@ -27,6 +29,8 @@ export class UserAnswerSubKuisionerService {
 
     @Inject(forwardRef(() => UserAnswerKuisionerService))
     private readonly userAnswerKuisionerService: UserAnswerKuisionerService,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(
@@ -34,38 +38,67 @@ export class UserAnswerSubKuisionerService {
     subKuisionerData: CreateUserAnswerSubKuisionerDTO,
     userId: string,
   ): Promise<string> {
-    const subKuisioner = await this.subKuisionerService.findOne(
-      subKuisionerData.subKuisionerId,
-    );
-    if (!subKuisioner) {
-      throw new NotFoundException('The Sub Kuisioner Is Not Found');
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // Step 1: Fetch the subKuisioner
+      const subKuisioner = await this.subKuisionerService.findOne(
+        subKuisionerData.subKuisionerId,
+      );
+
+      if (!subKuisioner) {
+        throw new NotFoundException('The Sub Kuisioner Is Not Found');
+      }
+
+      // Step 2: Fetch the takeKuisioner
+      const takeKuisioner =
+        await this.takeKuisionerService.findOne(takeKuisionerId);
+      if (!takeKuisioner) {
+        throw new NotFoundException('You Have Not Taken This Kuisioner');
+      }
+
+      // Step 3: Check access control
+      if (takeKuisioner.user.id != userId) {
+        throw new ForbiddenException(
+          'You Are Forbidden to Access this Kuisioner',
+        );
+      }
+
+      // Step 4: Prepare data for saving to the repository
+      const data = new UserAnswerSubKuisioner();
+      data.subKuisioner = subKuisioner;
+      data.takeKuisioner = takeKuisioner;
+
+      // Step 5: Save the UserAnswerSubKuisioner data
+      const createTakeSubKuisioner = await queryRunner.manager.save(data);
+
+      // Step 6: Save user answers related to this subKuisioner
+      await this.userAnswerKuisionerService.create(
+        createTakeSubKuisioner.id, // Use the newly created subKuisioner ID
+        subKuisionerData.userAnswers, // Pass the user answers
+        queryRunner
+      );
+
+      // Step 7: Commit the transaction
+      await queryRunner.commitTransaction();
+
+      // Step 7: Return the created subKuisioner ID
+      return createTakeSubKuisioner.id;
+    } catch (error) {
+      // Roll back the transaction in case of any failure
+      await queryRunner.rollbackTransaction();
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException(error.message);
+    } finally {
+      // Release the query runner after the transaction
+      await queryRunner.release();
     }
-
-    const takeKuisioner =
-      await this.takeKuisionerService.findOne(takeKuisionerId);
-
-    if (!takeKuisioner) {
-      throw new NotFoundException('Your Not Take The Kuisioner');
-    }
-
-    if (takeKuisioner.user.id != userId) {
-      throw new ForbiddenException('Your Forbidden to Access this Kuisioner');
-    }
-
-    const data = {
-      takeKuisioner: takeKuisioner,
-      subKuisioner: subKuisioner,
-    };
-
-    const createTakeSubKuisioner =
-      await this.userAnswerSubKuisionerRepository.save(data);
-
-    await this.userAnswerKuisionerService.create(
-      createTakeSubKuisioner.id,
-      subKuisionerData.userAnswers,
-    );
-
-    return createTakeSubKuisioner.id;
   }
 
   findAll() {

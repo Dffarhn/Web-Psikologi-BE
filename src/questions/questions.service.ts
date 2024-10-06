@@ -8,7 +8,10 @@ import {
   BodyCreateQuestionDto,
   CreateQuestionDto,
 } from './dto/create-question.dto';
-import { BodyUpdateQuestionDto, UpdateQuestionDto } from './dto/update-question.dto';
+import {
+  BodyUpdateQuestionDto,
+  UpdateQuestionDto,
+} from './dto/update-question.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Question } from './entities/question.entity';
 import { Repository } from 'typeorm';
@@ -72,41 +75,48 @@ export class QuestionsService {
         },
       },
     });
-  
+
     if (!payload) {
       throw new NotFoundException('Your Question Is Not Defined');
     }
-  
+
     return payload;
   }
-  
 
-  async update(questionId: string, updateQuestionDto: BodyUpdateQuestionDto): Promise<Question> {
+  async update(
+    questionId: string,
+    updateQuestionDto: BodyUpdateQuestionDto,
+  ): Promise<Question> {
     // Find the existing question by ID
-    const dataQuestion = await this.findOne(questionId)
-  
+    const dataQuestion = await this.findOne(questionId);
+
     // Check if the question exists
     if (!dataQuestion) {
-      throw new NotFoundException("Question Not Found");
+      throw new NotFoundException('Question Not Found');
     }
-  
+
     // Update the question fields (without handling answers)
     Object.assign(dataQuestion, {
       question: updateQuestionDto.question, // update the question text
     });
-  
+
     // Save the updated question to the database
     await this.questionRepository.save(dataQuestion);
-  
+
     // Handle the update of the answers using the AnswersService if answers are provided
-    if (updateQuestionDto.updateAnswers && updateQuestionDto.updateAnswers.length > 0) {
-      await this.answersService.updateAnswersForQuestion(questionId, updateQuestionDto.updateAnswers);
+    if (
+      updateQuestionDto.updateAnswers &&
+      updateQuestionDto.updateAnswers.length > 0
+    ) {
+      await this.answersService.updateAnswersForQuestion(
+        questionId,
+        updateQuestionDto.updateAnswers,
+      );
     }
-  
+
     // Return the updated question
     return dataQuestion;
   }
-  
 
   async remove(questionId: string): Promise<Date> {
     const result = await this.questionRepository.delete({ id: questionId });

@@ -2,10 +2,11 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { UpdateUserAnswerKuisionerDto } from './dto/update-user-answer-kuisioner.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserAnswerKuisioner } from './entities/user-answer-kuisioner.entity';
-import { Repository } from 'typeorm';
+import { QueryRunner, Repository } from 'typeorm';
 import { AnswersService } from 'src/answers/answers.service';
 import { UserAnswerSubKuisionerService } from 'src/user-answer-sub-kuisioner/user-answer-sub-kuisioner.service';
 import { CreateUserAnswerKuisionerDto } from './dto/create-user-answer-kuisioner.dto';
+import { UserAnswerSubKuisioner } from 'src/user-answer-sub-kuisioner/entities/user-answer-sub-kuisioner.entity';
 
 @Injectable()
 export class UserAnswerKuisionerService {
@@ -23,10 +24,12 @@ export class UserAnswerKuisionerService {
   async create(
     idTakeSubKuisioner: string,
     createUserAnswerKuisionerDto: CreateUserAnswerKuisionerDto[],
+    queryRunner: QueryRunner // Add QueryRunner to ensure transactional consistency
   ) {
-    const takeSubKuisioner =
-      await this.userAnswerSubKuisionerService.findOne(idTakeSubKuisioner);
-
+    const takeSubKuisioner = await queryRunner.manager.findOne(
+      UserAnswerSubKuisioner, 
+      { where: { id: idTakeSubKuisioner } }
+    );
     for (const answer of createUserAnswerKuisionerDto) {
       const answerData = await this.answerService.findOne(answer.answerId);
 
@@ -35,7 +38,7 @@ export class UserAnswerKuisionerService {
         answer: answerData,
       });
 
-      await this.userAnswerKuisionerRepository.save(saveData);
+      await queryRunner.manager.save(saveData); // Save using queryRunner
     }
 
     return 'This action adds a new userAnswerKuisioner';

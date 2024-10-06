@@ -53,7 +53,7 @@ export class QuestionsController {
     }
   }
 
-  @Post(':questionId')
+  @Post(':subKuisionerId')
   @IsVerificationRequired(true)
   @Roles(ROLES.SUPERADMIN)
   async create(
@@ -93,8 +93,8 @@ export class QuestionsController {
         bodyUpdateQuestionDto,
       );
       return new ResponseApi(
-        HttpStatus.CREATED,
-        'Successfully created question',
+        HttpStatus.OK,
+        'Successfully update question',
         payload,
       );
     } catch (error) {
@@ -116,8 +116,8 @@ export class QuestionsController {
     try {
       const payload = await this.questionService.remove(questionId);
       return new ResponseApi(
-        HttpStatus.CREATED,
-        'Successfully created question',
+        HttpStatus.OK,
+        'Successfully delete question',
         payload,
       );
     } catch (error) {
