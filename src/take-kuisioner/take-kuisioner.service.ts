@@ -41,7 +41,7 @@ export class TakeKuisionerService {
   }
 
   async findOne(id: string): Promise<TakeKuisioner> {
-    return await this.takeKuisionerRepository.findOne({ where: { id: id } });
+    return await this.takeKuisionerRepository.findOne({ where: { id: id },relations:['user'] });
   }
 
   update(id: number, updateTakeKuisionerDto: UpdateTakeKuisionerDto) {
