@@ -26,6 +26,11 @@ import { UserId } from 'src/user/decorator/userId.decorator';
 import { JwtPayloadInterfaces } from 'src/jwt/interfaces/jwtPayload.interface';
 import { RegisterRequestDTO } from './dto/request/registerRequest.dto';
 import { LoginRequestDTO } from './dto/request/loginRequest.dto';
+import { ROLES } from 'src/roles/group/role.enum';
+import { PsikologiStatus } from 'src/pyschology/group/psikologiStatus.enum';
+import { ClientPsychologistService } from 'src/client_psychologist/client_psychologist.service';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { CreatePyschologyDto } from 'src/pyschology/dto/create-pyschology.dto';
 
 @Injectable()
 export class AuthService {
@@ -44,6 +49,9 @@ export class AuthService {
 
     @Inject(JwtKeepUpService)
     private jwtKeepUpService: JwtKeepUpService,
+
+    @Inject(ClientPsychologistService)
+    private readonly clientPsychologistService: ClientPsychologistService,
 
     private dataSource: DataSource,
   ) {}
@@ -95,16 +103,34 @@ export class AuthService {
       authRecord.token = this.generateTokenConfirmation(); // Generate token logic
       await queryRunner.manager.save(Auth, authRecord); // Save it within the transaction
 
-      // Create an instance of the User entity
-      const newUser = new User();
+      // Initialize new user
+      let newUser: any;
+
+      // Role-specific user creation logic
+      if (role.id === ROLES.ADMIN) {
+        newUser = new CreatePyschologyDto();
+        newUser.psikologStatus = PsikologiStatus.Pending;
+      } else if (role.id === ROLES.USER) {
+        newUser = new CreateUserDto();
+      }
+
+      // Common user properties
       newUser.email = registerAuthDTO.email;
       newUser.username = registerAuthDTO.username;
       newUser.password = hashedPassword;
-      newUser.auth = authRecord; // Link the newly created auth record
+      newUser.auth = authRecord;
       newUser.role = role;
 
       // Save the user using the query runner's transactional method
-      await queryRunner.manager.save(User, newUser);
+      const saveUser = await queryRunner.manager.save(User, newUser);
+
+      //if the role is User Assign the user to the Psikolog that have filter by Faculty and Have Minimum Client
+      if (role.id === ROLES.USER) {
+        this.clientPsychologistService.createOnRegisterUser(
+          saveUser,
+          queryRunner,
+        );
+      }
 
       // Send the confirmation email
       await this.emailService.sendConfirmationEmail(

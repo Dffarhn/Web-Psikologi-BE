@@ -5,12 +5,18 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { FacultysService } from 'src/facultys/facultys.service';
+import { ROLES } from 'src/roles/group/role.enum';
+import { PsikologiStatus } from '../pyschology/group/psikologiStatus.enum';
+import { Auth } from 'src/auth/entities/auth.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+
+    @InjectRepository(Auth)
+    private authRepository: Repository<Auth>,
 
     @Inject(FacultysService)
     private readonly facultyService: FacultysService,
@@ -39,8 +45,16 @@ export class UserService {
     return `This action returns all user`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: string): Promise<User> {
+    const dataArrayUser = await this.userRepository.findOne({
+      where: { id: id },
+    });
+
+    if (!dataArrayUser) {
+      throw new NotFoundException('User That u Searching Not Found');
+    }
+
+    return dataArrayUser;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
@@ -49,17 +63,34 @@ export class UserService {
       throw new NotFoundException(`User with id ${id} not found`);
     }
 
-    const faculty = await this.facultyService.getFacultyById(
-      updateUserDto.facultyId,
-    );
+    if (updateUserDto.facultyId) {
+      const faculty = await this.facultyService.getFacultyById(
+        updateUserDto.facultyId,
+      );
 
-    updateUserDto.faculty = faculty;
+      updateUserDto.faculty = faculty;
+    }
 
     Object.assign(user, updateUserDto); // Apply the updates
     return await this.userRepository.save(user); // Save the updated user
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(userId: string): Promise<boolean> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['auth'],
+    });
+
+    if (user) {
+      // First, delete the related Auth entity
+      if (user.auth) {
+        await this.authRepository.delete({ id: user.auth.id });
+      }
+      // Then, remove the User
+      await this.userRepository.remove(user); // You can keep this to remove the user
+      return true;
+    }
+
+    return false;
   }
 }

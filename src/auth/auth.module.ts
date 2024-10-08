@@ -7,6 +7,7 @@ import { EmailModule } from 'src/email/email.module';
 import { UserModule } from 'src/user/user.module';
 import { RolesModule } from 'src/roles/roles.module';
 import { JwtKeepUpModule } from 'src/jwt/jwt.module';
+import { ClientPsychologistModule } from 'src/client_psychologist/client_psychologist.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { JwtKeepUpModule } from 'src/jwt/jwt.module';
     RolesModule,
     EmailModule,
     UserModule,
+    ClientPsychologistModule
   ],
   controllers: [AuthController],
   providers: [AuthService],

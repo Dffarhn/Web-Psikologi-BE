@@ -32,8 +32,10 @@ export class UserController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+  async findOne(@Param('id') id: string): Promise<ResponseApi<User>> {
+    const userData = await this.userService.findOne(id);
+
+    return new ResponseApi(HttpStatus.OK, 'Update User Successfully', userData);
   }
 
   @Patch()
@@ -48,8 +50,16 @@ export class UserController {
     return new ResponseApi(HttpStatus.OK, 'Update User Successfully', data);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+  @Delete()
+  @IsVerificationRequired(true)
+  @Roles(ROLES.USER)
+  async remove(@UserId() userId: string): Promise<ResponseApi<string>> {
+    const data = await this.userService.remove(userId);
+
+    return new ResponseApi(
+      HttpStatus.OK,
+      'Successfully Delete User',
+      'success',
+    );
   }
 }

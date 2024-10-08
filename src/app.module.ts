@@ -16,6 +16,8 @@ import { AnswersModule } from './answers/answers.module';
 import { TakeKuisionerModule } from './take-kuisioner/take-kuisioner.module';
 import { UserAnswerKuisionerModule } from './user-answer-kuisioner/user-answer-kuisioner.module';
 import { UserAnswerSubKuisionerModule } from './user-answer-sub-kuisioner/user-answer-sub-kuisioner.module';
+import { ClientPsychologistModule } from './client_psychologist/client_psychologist.module';
+import { PyschologyModule } from './pyschology/pyschology.module';
 
 @Module({
   imports: [
@@ -33,6 +35,8 @@ import { UserAnswerSubKuisionerModule } from './user-answer-sub-kuisioner/user-a
     TakeKuisionerModule,
     UserAnswerKuisionerModule,
     UserAnswerSubKuisionerModule,
+    ClientPsychologistModule,
+    PyschologyModule,
   ],
   controllers: [AppController],
   providers: [AppService],
