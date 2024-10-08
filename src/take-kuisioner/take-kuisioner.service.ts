@@ -1,4 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { UpdateTakeKuisionerDto } from './dto/request/update-take-kuisioner.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TakeKuisioner } from './entities/take-kuisioner.entity';
@@ -16,39 +21,66 @@ export class TakeKuisionerService {
     private readonly userService: UserService,
 
     @Inject(KuisionerService)
-    private readonly kuisonerService: KuisionerService,
+    private readonly kuisionerService: KuisionerService,
   ) {}
 
   async create(kuisionerId: string, userId: string): Promise<string> {
     const user = await this.userService.findById(userId);
-
     const kuisioner =
-      await this.kuisonerService.getOneKuisionerById(kuisionerId);
+      await this.kuisionerService.getOneKuisionerById(kuisionerId);
 
-    const data = {
+    const newTakeKuisioner = {
       isFinish: false,
       user: user,
       kuisioner: kuisioner,
     };
 
-    const takeKuisioner = await this.takeKuisionerRepository.save(data);
+    const savedTakeKuisioner =
+      await this.takeKuisionerRepository.save(newTakeKuisioner);
 
-    return takeKuisioner.id;
+    return savedTakeKuisioner.id;
   }
 
-  findAll() {
-    return `This action returns all takeKuisioner`;
+  async findAll(userId: string): Promise<TakeKuisioner[]> {
+    const takeKuisionerList = await this.takeKuisionerRepository.find({
+      where: { user: { id: userId } },
+      order: { createdAt: 'DESC' }, // Order by createdAt in descending order
+    });
+
+    if (!takeKuisionerList || takeKuisionerList.length === 0) {
+      throw new NotFoundException('No Kuisioner History Found');
+    }
+
+    return takeKuisionerList;
   }
 
-  async findOne(id: string): Promise<TakeKuisioner> {
-    return await this.takeKuisionerRepository.findOne({ where: { id: id },relations:['user'] });
+  async findLatest(userId: string): Promise<TakeKuisioner> {
+    const latestTakeKuisioner = await this.takeKuisionerRepository.findOne({
+      where: { user: { id: userId } },
+      order: { createdAt: 'DESC' }, // Order by createdAt in descending order
+    });
+
+    if (!latestTakeKuisioner) {
+      throw new NotFoundException('No Kuisioner Found');
+    }
+
+    return latestTakeKuisioner;
   }
 
-  update(id: number, updateTakeKuisionerDto: UpdateTakeKuisionerDto) {
-    return `This action updates a #${id} takeKuisioner`;
-  }
+  async findOne(userId: string, kuisionerId: string): Promise<TakeKuisioner> {
+    const takeKuisioner = await this.takeKuisionerRepository.findOne({
+      where: { id: kuisionerId },
+      relations: ['user', 'userAnswerSubKuisioner'],
+    });
 
-  remove(id: number) {
-    return `This action removes a #${id} takeKuisioner`;
+    if (!takeKuisioner) {
+      throw new NotFoundException('Kuisioner History Not Found');
+    }
+
+    if (takeKuisioner.user.id !== userId) {
+      throw new ForbiddenException('Access Denied: This is Not Your Kuisioner');
+    }
+
+    return takeKuisioner;
   }
 }

@@ -54,7 +54,7 @@ export class UserAnswerSubKuisionerService {
 
       // Step 2: Fetch the takeKuisioner
       const takeKuisioner =
-        await this.takeKuisionerService.findOne(takeKuisionerId);
+        await this.takeKuisionerService.findOne(userId,takeKuisionerId);
       if (!takeKuisioner) {
         throw new NotFoundException('You Have Not Taken This Kuisioner');
       }
@@ -78,7 +78,7 @@ export class UserAnswerSubKuisionerService {
       await this.userAnswerKuisionerService.create(
         createTakeSubKuisioner.id, // Use the newly created subKuisioner ID
         subKuisionerData.userAnswers, // Pass the user answers
-        queryRunner
+        queryRunner,
       );
 
       // Step 7: Commit the transaction

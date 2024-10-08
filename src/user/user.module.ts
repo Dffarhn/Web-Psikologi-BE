@@ -5,10 +5,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { FacultysModule } from 'src/facultys/facultys.module';
 import { JwtKeepUpModule } from 'src/jwt/jwt.module';
+import { Auth } from 'src/auth/entities/auth.entity';
 
 @Global()
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), forwardRef(() => FacultysModule)],
+  imports: [TypeOrmModule.forFeature([User,Auth]), forwardRef(() => FacultysModule)],
   controllers: [UserController],
   providers: [UserService],
   exports: [UserService],

@@ -13,8 +13,9 @@ import {
 import { Gender } from 'src/common/group/gender.enum';
 import { isNotBlank } from 'src/common/validatorCustom/isNotBlank.validator';
 import { Role } from 'src/roles/entities/role.entity';
+import { PsikologiStatus } from '../group/psikologiStatus.enum';
 
-export class CreateUserDto {
+export class CreatePyschologyDto {
   @IsEmail({}, { message: 'Invalid email format' })
   @IsNotEmpty({ message: 'Email is required' })
   @isNotBlank({ message: 'Email cannot be blank' })
@@ -32,9 +33,12 @@ export class CreateUserDto {
   @isNotBlank({ message: 'Password cannot be blank' })
   password: string;
 
+
   @IsNotEmpty({ message: 'auth is required' })
   auth: Auth;
 
   @IsNotEmpty({ message: 'role is required' })
   role: Role;
+
+  psikologStatus:PsikologiStatus
 }
