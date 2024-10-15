@@ -41,9 +41,9 @@ export class UserService {
     });
   }
 
-  findAll() {
-    return `This action returns all user`;
-  }
+  // findAll() {
+  //   return `This action returns all user`;
+  // }
 
   async findOne(id: string): Promise<User> {
     const dataArrayUser = await this.userRepository.findOne({

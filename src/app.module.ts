@@ -18,6 +18,8 @@ import { UserAnswerKuisionerModule } from './user-answer-kuisioner/user-answer-k
 import { UserAnswerSubKuisionerModule } from './user-answer-sub-kuisioner/user-answer-sub-kuisioner.module';
 import { ClientPsychologistModule } from './client_psychologist/client_psychologist.module';
 import { PyschologyModule } from './pyschology/pyschology.module';
+import { AikeepUpModule } from './aikeep-up/aikeep-up.module';
+import { PdfModule } from './pdf/pdf.module';
 
 @Module({
   imports: [
@@ -37,6 +39,8 @@ import { PyschologyModule } from './pyschology/pyschology.module';
     UserAnswerSubKuisionerModule,
     ClientPsychologistModule,
     PyschologyModule,
+    AikeepUpModule,
+    PdfModule,
   ],
   controllers: [AppController],
   providers: [AppService],
