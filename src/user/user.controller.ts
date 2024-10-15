@@ -26,16 +26,18 @@ import { UserId } from './decorator/userId.decorator';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  // @Get()
+  // findAll() {
+  //   return this.userService.findAll();
+  // }
+
   @Get()
-  findAll() {
-    return this.userService.findAll();
-  }
+  @IsVerificationRequired(true)
+  @Roles(ROLES.USER, ROLES.ADMIN, ROLES.SUPERADMIN)
+  async findOne(@UserId() userId: string): Promise<ResponseApi<User>> {
+    const userData = await this.userService.findOne(userId);
 
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<ResponseApi<User>> {
-    const userData = await this.userService.findOne(id);
-
-    return new ResponseApi(HttpStatus.OK, 'Update User Successfully', userData);
+    return new ResponseApi(HttpStatus.OK, 'Get User Successfully', userData);
   }
 
   @Patch()
@@ -52,7 +54,7 @@ export class UserController {
 
   @Delete()
   @IsVerificationRequired(true)
-  @Roles(ROLES.USER)
+  @Roles(ROLES.USER, ROLES.ADMIN, ROLES.SUPERADMIN)
   async remove(@UserId() userId: string): Promise<ResponseApi<string>> {
     const data = await this.userService.remove(userId);
 

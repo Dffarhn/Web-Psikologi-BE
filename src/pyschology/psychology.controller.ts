@@ -52,6 +52,8 @@ export class PyschologyController {
   }
 
   @Patch(':id')
+  @IsVerificationRequired(true)
+  @Roles(ROLES.SUPERADMIN)
   update(
     @Param('id') id: string,
     @Body() updatePyschologyDto: UpdatePyschologyDto,

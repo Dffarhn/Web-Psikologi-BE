@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Inject,
   Injectable,
@@ -10,6 +11,7 @@ import { TakeKuisioner } from './entities/take-kuisioner.entity';
 import { Repository } from 'typeorm';
 import { UserService } from 'src/user/user.service';
 import { KuisionerService } from 'src/kuisioner/kuisioner.service';
+import { UserAnswerSubKuisioner } from 'src/user-answer-sub-kuisioner/entities/user-answer-sub-kuisioner.entity';
 
 @Injectable()
 export class TakeKuisionerService {
@@ -82,5 +84,44 @@ export class TakeKuisionerService {
     }
 
     return takeKuisioner;
+  }
+
+  async createResult(kuisionerId: string, userId: string) {
+    const takeKuisionerFinal = await this.takeKuisionerRepository.findOne({
+      where: { id: kuisionerId, isFinish: false },
+      relations: [
+        'user',
+        'userAnswerSubKuisioner',
+        'userAnswerSubKuisioner.subKuisioner',
+      ],
+    });
+
+    if (!takeKuisionerFinal) {
+      throw new BadRequestException('Kuisioner Is Done Generate Report');
+    }
+
+    if (takeKuisionerFinal.user.id !== userId) {
+      throw new ForbiddenException('Access Denied: This is Not Your Kuisioner');
+    }
+
+    // Initialize an object to hold the result will be passing to gpt
+    let dataHasil = {};
+
+    // Loop through each user answer in the sub-kuisioner
+    takeKuisionerFinal.userAnswerSubKuisioner.forEach(
+      (subKuisioner: UserAnswerSubKuisioner) => {
+        // Extract relevant information, such as the symptom name
+        const symptomName = subKuisioner.subKuisioner.symtompId.name;
+
+        // Example: Collect data, associating it with the symptom name
+        dataHasil[subKuisioner.subKuisioner.id] = {
+          symptomName: symptomName,
+          userSymtompLevel: subKuisioner.level, // Assuming 'answer' holds the user's response
+          userSymtompScore: subKuisioner.score,
+        };
+      },
+    );
+
+    //data perhitungan + report GPT and make it finish
   }
 }
