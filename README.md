@@ -4,9 +4,107 @@
 
 # USER
 
-## Authentikasi
+## Get Profile
 
-### Login
+Endpoint : POST user
+
+Authorization: access_token
+
+Response Body (succes) :
+
+```
+{
+    "statusCode": 200,
+    "message": "Get User Successfully",
+    "data": {
+        "id": "e873bc09-8996-4f45-a135-3c8fcdc01149",
+        "email": "daffaraihan2004.work@gmail.com",
+        "username": "Muhammad Daffa Raihan client",
+        "nim": "22523184",
+        "yearEntry": 2023,
+        "gender": "Laki-Laki",
+        "birthDate": null
+    }
+}
+
+```
+
+## Get Another User Profile (Admin,SuperAdmin)
+
+Endpoint : POST user/:user_id
+
+Param: user_id (UUID)
+
+Authorization: access_token
+
+Response Body (succes) :
+
+```
+{
+    "statusCode": 200,
+    "message": "Get User Successfully",
+    "data": {
+        "id": "4aeefde1-ab5f-4129-bde2-9feace8e9315",
+        "email": "22523184@students.uii.ac.id",
+        "username": "Muhammad Daffa Raihan SuperAdmin",
+        "nim": null,
+        "yearEntry": null,
+        "gender": null,
+        "birthDate": null
+    }
+}
+
+```
+
+## Update Profile
+
+Endpoint : Patch user
+
+Authorization: access_token
+
+Request Body :
+
+```
+{
+    "nim":"22523184",
+    "gender": "Laki-Laki",
+    "yearEntry": 2023,
+    "birthDate": //format "YY-MM-DD
+
+}
+```
+
+Response Body (succes) :
+
+```
+{
+    "statusCode": 200,
+    "message": "Update User Successfully",
+    "data": "2024-10-17T10:25:54.137Z"
+}
+
+```
+
+## Delete Profile
+
+Endpoint : DELETE user
+
+Authorization: access_token
+
+Response Body (succes) :
+
+```
+{
+    "statusCode": 200,
+    "message": "Update User Successfully",
+    "data": "success"
+}
+
+```
+
+# Authentikasi
+
+## Login
 
 Endpoint : POST auth/login
 
@@ -31,7 +129,7 @@ Response Body (succes) :
 }
 ```
 
-### Register
+## Register
 
 Endpoint : POST auth/register
 
@@ -62,7 +160,7 @@ Response Body (succes) :
 
 ```
 
-### Refresh Access Token
+## Refresh Access Token
 
 Endpoint : POST auth/refresh
 
@@ -83,7 +181,7 @@ Response Body (succes) :
 
 ```
 
-### Resend Confirmation
+## Resend Confirmation
 
 Endpoint : POST auth/resendConfirmation
 
@@ -99,7 +197,7 @@ Response Body (succes) :
 
 ```
 
-### Confirmation Email
+## Confirmation Email
 
 Endpoint : GET /auth/confirm?authId=scsacsa&token=cascas
 
@@ -108,7 +206,6 @@ Response Body (succes) : Redirect to Login Page FrontEnd
 # Kuisioner
 
 ## Get All Kuisioner
-
 
 Endpoint : GET /kuisioner
 
@@ -140,7 +237,6 @@ Response Body (succes) :
 ```
 
 ## Get Spesific Kuisioner
-
 
 Endpoint : GET /kuisioner/:kuisioner_id
 
@@ -294,5 +390,3 @@ Response Body (succes) :
 }
 
 ```
-
-
