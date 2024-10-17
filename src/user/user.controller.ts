@@ -8,6 +8,8 @@ import {
   Delete,
   UseGuards,
   HttpStatus,
+  Query,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -20,6 +22,7 @@ import { ROLES } from 'src/roles/group/role.enum';
 import { ResponseApi } from 'src/common/response/responseApi.format';
 import { User } from './entities/user.entity';
 import { UserId } from './decorator/userId.decorator';
+import { UserProfileDto } from './dto/user-profile.dto';
 
 @Controller({ path: 'user', version: '1' })
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -34,10 +37,44 @@ export class UserController {
   @Get()
   @IsVerificationRequired(true)
   @Roles(ROLES.USER, ROLES.ADMIN, ROLES.SUPERADMIN)
-  async findOne(@UserId() userId: string): Promise<ResponseApi<User>> {
+  async profile(
+    @UserId() userId: string,
+  ): Promise<ResponseApi<UserProfileDto>> {
     const userData = await this.userService.findOne(userId);
 
-    return new ResponseApi(HttpStatus.OK, 'Get User Successfully', userData);
+    // Map the User entity to UserProfileDto to exclude unwanted fields
+    const userProfile: UserProfileDto = {
+      id: userData.id,
+      email: userData.email,
+      username: userData.username,
+      nim: userData.nim,
+      yearEntry: userData.yearEntry,
+      gender: userData.gender,
+      birthDate: userData.birthDate, // Optional
+    };
+
+    return new ResponseApi(HttpStatus.OK, 'Get User Successfully', userProfile);
+  }
+
+  @Get(':id')
+  @IsVerificationRequired(true)
+  @Roles(ROLES.ADMIN, ROLES.SUPERADMIN)
+  async findOne(
+    @Param('id', new ParseUUIDPipe()) userId: string,
+  ): Promise<ResponseApi<UserProfileDto>> {
+    const userData = await this.userService.findOne(userId);
+
+    const userProfile: UserProfileDto = {
+      id: userData.id,
+      email: userData.email,
+      username: userData.username,
+      nim: userData.nim,
+      yearEntry: userData.yearEntry,
+      gender: userData.gender,
+      birthDate: userData.birthDate, // Optional
+    };
+
+    return new ResponseApi(HttpStatus.OK, 'Get User Successfully', userProfile);
   }
 
   @Patch()
@@ -46,10 +83,10 @@ export class UserController {
   async update(
     @UserId() id: string,
     @Body() updateUserDto: UpdateUserDto,
-  ): Promise<ResponseApi<User>> {
+  ): Promise<ResponseApi<Date>> {
     const data = await this.userService.update(id, updateUserDto);
 
-    return new ResponseApi(HttpStatus.OK, 'Update User Successfully', data);
+    return new ResponseApi(HttpStatus.OK, 'Update User Successfully', data.updatedAt);
   }
 
   @Delete()
