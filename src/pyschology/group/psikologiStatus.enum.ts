@@ -1,6 +1,5 @@
 export enum PsikologiStatus {
-    Pending = 'pending',
-    Rejected = 'rejected',
-    Approved = 'approved'
-  }
-  
+  Pending = 'pending',
+  Rejected = 'rejected',
+  Approved = 'approved',
+}

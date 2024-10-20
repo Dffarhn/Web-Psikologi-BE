@@ -1,3 +1,1 @@
-export class ResendConfirmationDTO{
-    
-}
+export class ResendConfirmationDTO {}

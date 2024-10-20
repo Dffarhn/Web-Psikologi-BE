@@ -44,8 +44,12 @@ export class User {
   })
   role: Role;
 
-  @OneToOne(() => Auth, (auth) => auth.users, { cascade: true, onDelete: 'CASCADE',onUpdate:'CASCADE' })
-  @JoinColumn()  // Creates the foreign key in the User table
+  @OneToOne(() => Auth, (auth) => auth.users, {
+    cascade: true,
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
+  @JoinColumn() // Creates the foreign key in the User table
   auth: Auth;
 
   @CreateDateColumn({ type: 'timestamp' })
@@ -67,7 +71,6 @@ export class User {
     nullable: true,
   })
   gender: 'Laki-Laki' | 'Perempuan';
-  
 
   // Field to indicate the status of psychologist account approval
   @Column({

@@ -6,9 +6,9 @@ export class Role {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ nullable: false, type:'varchar',length:255 })
+  @Column({ nullable: false, type: 'varchar', length: 255 })
   name: string;
 
-  @OneToMany(() => User, (user) => user.role,{cascade:true})  // Set the reverse relation
+  @OneToMany(() => User, (user) => user.role, { cascade: true }) // Set the reverse relation
   users: User[];
 }

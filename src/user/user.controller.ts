@@ -86,7 +86,11 @@ export class UserController {
   ): Promise<ResponseApi<Date>> {
     const data = await this.userService.update(id, updateUserDto);
 
-    return new ResponseApi(HttpStatus.OK, 'Update User Successfully', data.updatedAt);
+    return new ResponseApi(
+      HttpStatus.OK,
+      'Update User Successfully',
+      data.updatedAt,
+    );
   }
 
   @Delete()

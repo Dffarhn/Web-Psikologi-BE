@@ -5,11 +5,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Symtomp } from './entities/symtomp.entity';
 
 @Module({
-  imports:[
-    TypeOrmModule.forFeature([Symtomp])
-  ],
+  imports: [TypeOrmModule.forFeature([Symtomp])],
   controllers: [SymtompsController],
   providers: [SymtompsService],
-  exports:[SymtompsService]
+  exports: [SymtompsService],
 })
 export class SymtompsModule {}

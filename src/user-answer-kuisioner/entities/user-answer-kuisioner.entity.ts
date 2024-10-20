@@ -18,7 +18,8 @@ export class UserAnswerKuisioner {
   )
   userAnswerSubKuisioner: UserAnswerSubKuisioner;
 
-  @ManyToOne(() => Answer, (answer) => answer.id, { // Updated
+  @ManyToOne(() => Answer, (answer) => answer.id, {
+    // Updated
     cascade: true,
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',

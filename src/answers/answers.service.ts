@@ -45,17 +45,14 @@ export class AnswersService {
     return `This action returns all answers`;
   }
 
-  async findOne(id: string):Promise<Answer> {
-
-
-    const data = await this.answerRepository.findOne({where:{id:id}}) 
+  async findOne(id: string): Promise<Answer> {
+    const data = await this.answerRepository.findOne({ where: { id: id } });
 
     if (!data) {
-      throw new NotFoundException("Answer Not Found")
-      
+      throw new NotFoundException('Answer Not Found');
     }
 
-    return data
+    return data;
   }
 
   async updateAnswersForQuestion(

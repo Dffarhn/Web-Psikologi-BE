@@ -10,7 +10,7 @@ export class JwtKeepUpService {
     private nestJwtService: NestJwtService,
     private configService: ConfigService, // Inject ConfigService
   ) {}
-  
+
   generateAccessToken(payload: JwtPayloadInterfaces): Promise<string> {
     return this.nestJwtService.signAsync(payload);
   }

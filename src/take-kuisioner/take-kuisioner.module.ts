@@ -8,13 +8,13 @@ import { Kuisioner } from 'src/kuisioner/entity/kuisioner.entity';
 import { KuisionerModule } from 'src/kuisioner/kuisioner.module';
 
 @Module({
-  imports:[
+  imports: [
     TypeOrmModule.forFeature([TakeKuisioner]),
     UserModule,
-    KuisionerModule
+    KuisionerModule,
   ],
   controllers: [TakeKuisionerController],
   providers: [TakeKuisionerService],
-  exports:[TakeKuisionerService]
+  exports: [TakeKuisionerService],
 })
 export class TakeKuisionerModule {}

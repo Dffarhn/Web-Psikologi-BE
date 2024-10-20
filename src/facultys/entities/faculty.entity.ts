@@ -6,9 +6,9 @@ export class Faculty {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ nullable: false, type:'varchar',length:255 })
+  @Column({ nullable: false, type: 'varchar', length: 255 })
   name: string;
 
-  @OneToMany(() => User, (user) => user.faculty,{cascade:true})
+  @OneToMany(() => User, (user) => user.faculty, { cascade: true })
   users: User[];
 }

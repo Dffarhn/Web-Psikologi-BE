@@ -8,6 +8,6 @@ import { Kuisioner } from './entity/kuisioner.entity';
   imports: [TypeOrmModule.forFeature([Kuisioner])],
   providers: [KuisionerService],
   controllers: [KuisionerController],
-  exports:[KuisionerService]
+  exports: [KuisionerService],
 })
 export class KuisionerModule {}

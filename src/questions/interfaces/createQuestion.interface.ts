@@ -1,4 +1,4 @@
-export interface CreateQuestionInterface{
-    id:string
-    createdAt:Date
+export interface CreateQuestionInterface {
+  id: string;
+  createdAt: Date;
 }

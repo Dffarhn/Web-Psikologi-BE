@@ -16,7 +16,7 @@ export class SymtompsService {
     return await this.symtompRepository.save(createSymtompDto);
   }
 
-  async findAll():Promise<Symtomp[]> {
+  async findAll(): Promise<Symtomp[]> {
     return await this.symtompRepository.find();
   }
 

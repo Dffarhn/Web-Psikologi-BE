@@ -16,7 +16,7 @@ import { ClientPsychologistModule } from 'src/client_psychologist/client_psychol
     RolesModule,
     EmailModule,
     UserModule,
-    ClientPsychologistModule
+    ClientPsychologistModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],

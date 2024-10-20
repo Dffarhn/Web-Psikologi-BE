@@ -1,5 +1,12 @@
 import { SubKuisioner } from 'src/sub-kuisioner/entities/sub-kuisioner.entity';
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('kuisioners')
 export class Kuisioner {

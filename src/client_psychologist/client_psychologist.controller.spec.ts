@@ -11,7 +11,9 @@ describe('ClientPsychologistController', () => {
       providers: [ClientPsychologistService],
     }).compile();
 
-    controller = module.get<ClientPsychologistController>(ClientPsychologistController);
+    controller = module.get<ClientPsychologistController>(
+      ClientPsychologistController,
+    );
   });
 
   it('should be defined', () => {

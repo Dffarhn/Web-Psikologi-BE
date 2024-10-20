@@ -24,11 +24,11 @@ export class UserAnswerKuisionerService {
   async create(
     idTakeSubKuisioner: string,
     createUserAnswerKuisionerDto: CreateUserAnswerKuisionerDto[],
-    queryRunner: QueryRunner // Add QueryRunner to ensure transactional consistency
+    queryRunner: QueryRunner, // Add QueryRunner to ensure transactional consistency
   ) {
     const takeSubKuisioner = await queryRunner.manager.findOne(
-      UserAnswerSubKuisioner, 
-      { where: { id: idTakeSubKuisioner } }
+      UserAnswerSubKuisioner,
+      { where: { id: idTakeSubKuisioner } },
     );
     for (const answer of createUserAnswerKuisionerDto) {
       const answerData = await this.answerService.findOne(answer.answerId);

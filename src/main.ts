@@ -7,15 +7,11 @@ import * as cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.use(cookieParser())
-
   app.enableCors({
-    origin: '*', // Frontend domains or '*'
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
-    allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+    origin: '*', // Allow all domains
   });
-  
-  
+
+  app.use(cookieParser());
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -28,9 +24,9 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
 
   app.enableVersioning({
-    type: VersioningType.URI,  // Use /v1/ in the URI
+    type: VersioningType.URI, // Use /v1/ in the URI
   });
-  
+
   await app.listen(3000);
 }
 bootstrap();

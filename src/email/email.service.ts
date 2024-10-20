@@ -1,4 +1,9 @@
-import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import * as brevo from '@getbrevo/brevo';
 import { ConfigService } from '@nestjs/config';
 import { TransactionalEmailsApi } from '@getbrevo/brevo';
@@ -24,7 +29,6 @@ export class EmailService {
     token: string,
     authId: string,
   ): Promise<void> {
-
     const confirmationLink = `${this.configService.get<string>('url.name')}/v1/auth/confirm?token=${token}&&idAuth=${authId}`;
 
     const emailContent = generateConfirmationEmailContent(

@@ -7,13 +7,13 @@ import { KuisionerModule } from 'src/kuisioner/kuisioner.module';
 import { SymtompsModule } from 'src/symtomps/symtomps.module';
 
 @Module({
-  imports:[
+  imports: [
     TypeOrmModule.forFeature([SubKuisioner]),
     KuisionerModule,
     SymtompsModule,
   ],
   controllers: [SubKuisionerController],
   providers: [SubKuisionerService],
-  exports:[SubKuisionerService]
+  exports: [SubKuisionerService],
 })
 export class SubKuisionerModule {}

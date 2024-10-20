@@ -50,8 +50,10 @@ export class SubKuisionerController {
 
   @Get(':subKuisionerId')
   @IsVerificationRequired(true)
-  @Roles(ROLES.USER,ROLES.ADMIN,ROLES.SUPERADMIN)
-  async findOne(@Param('subKuisionerId', new ParseUUIDPipe()) subKuisionerId:string): Promise<ResponseApi<SubKuisioner>> {
+  @Roles(ROLES.USER, ROLES.ADMIN, ROLES.SUPERADMIN)
+  async findOne(
+    @Param('subKuisionerId', new ParseUUIDPipe()) subKuisionerId: string,
+  ): Promise<ResponseApi<SubKuisioner>> {
     const payload = await this.subKuisionerService.findOne(subKuisionerId);
 
     return new ResponseApi(
@@ -65,16 +67,19 @@ export class SubKuisionerController {
   @IsVerificationRequired(true)
   @Roles(ROLES.SUPERADMIN)
   update(
-    @Param('subKuisionerId', new ParseUUIDPipe()) subKuisionerId:string,
+    @Param('subKuisionerId', new ParseUUIDPipe()) subKuisionerId: string,
     @Body() updateSubKuisionerDto: UpdateSubKuisionerDto,
   ) {
-    return this.subKuisionerService.update(subKuisionerId, updateSubKuisionerDto);
+    return this.subKuisionerService.update(
+      subKuisionerId,
+      updateSubKuisionerDto,
+    );
   }
 
   @Delete(':subKuisionerId')
   @IsVerificationRequired(true)
   @Roles(ROLES.SUPERADMIN)
-  remove(@Param('subKuisionerId', new ParseUUIDPipe()) subKuisionerId:string) {
+  remove(@Param('subKuisionerId', new ParseUUIDPipe()) subKuisionerId: string) {
     return this.subKuisionerService.remove(subKuisionerId);
   }
 }

@@ -1,3 +1,3 @@
 export class CreateClientPsychologistDto {
-    idUser:string
+  idUser: string;
 }

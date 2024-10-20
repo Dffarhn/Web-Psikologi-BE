@@ -36,12 +36,15 @@ export class PyschologyController {
   @IsVerificationRequired(true)
   @Roles(ROLES.SUPERADMIN)
   async findAll(
-    @Query('status') status: PsikologiStatus
-  ):Promise<ResponseApi<User[]>>{
+    @Query('status') status: PsikologiStatus,
+  ): Promise<ResponseApi<User[]>> {
     const data = await this.pyschologyService.findAll(status);
 
-
-    return new ResponseApi(HttpStatus.OK,"Successfully Get All Psikolog",data)
+    return new ResponseApi(
+      HttpStatus.OK,
+      'Successfully Get All Psikolog',
+      data,
+    );
   }
 
   @Get(':id')

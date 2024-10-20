@@ -1,5 +1,5 @@
 // src/jwt/interfaces/jwt-payload.interface.ts
-export interface JwtPayloadInterfaces{
+export interface JwtPayloadInterfaces {
   id: string; // User ID
   user: string; // Username
   role: string; // Role ID

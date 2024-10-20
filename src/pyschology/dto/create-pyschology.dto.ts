@@ -33,12 +33,11 @@ export class CreatePyschologyDto {
   @isNotBlank({ message: 'Password cannot be blank' })
   password: string;
 
-
   @IsNotEmpty({ message: 'auth is required' })
   auth: Auth;
 
   @IsNotEmpty({ message: 'role is required' })
   role: Role;
 
-  psikologStatus:PsikologiStatus
+  psikologStatus: PsikologiStatus;
 }

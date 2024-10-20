@@ -25,6 +25,9 @@ export class Auth {
   @Column({ nullable: false, type: 'uuid' })
   token: string;
 
-  @OneToOne(() => User, (user) => user.auth,{onDelete:'CASCADE',onUpdate:'CASCADE'}) // Assuming an Auth entity)
+  @OneToOne(() => User, (user) => user.auth, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  }) // Assuming an Auth entity)
   users: User;
 }

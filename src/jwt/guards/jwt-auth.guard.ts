@@ -26,7 +26,9 @@ export class JwtAuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request & { user?: JwtPayloadInterfaces }>(); // Extend Request type to include user
+    const request = context
+      .switchToHttp()
+      .getRequest<Request & { user?: JwtPayloadInterfaces }>(); // Extend Request type to include user
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {
@@ -50,9 +52,12 @@ export class JwtAuthGuard implements CanActivate {
       if (requiresVerification) {
         const user = await this.userService.findById(request.user.id);
 
-        if (!user || !user.auth.isVerification) { // Assuming `isVerified` is a property on your user model
+        if (!user || !user.auth.isVerification) {
+          // Assuming `isVerified` is a property on your user model
           this.logger.warn('User is not verified');
-          throw new ForbiddenException('User must be verified to access this route');
+          throw new ForbiddenException(
+            'User must be verified to access this route',
+          );
         }
       }
     } catch (error) {
@@ -65,7 +70,10 @@ export class JwtAuthGuard implements CanActivate {
         throw new ForbiddenException('Invalid token');
       } else {
         // Handle unexpected errors
-        this.logger.error('Unexpected error during token validation', error.message);
+        this.logger.error(
+          'Unexpected error during token validation',
+          error.message,
+        );
         throw new UnauthorizedException('Access Denied');
       }
     }

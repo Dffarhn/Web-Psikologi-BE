@@ -38,6 +38,9 @@ export class TakeKuisioner {
   })
   user: User;
 
-  @OneToMany(() => UserAnswerSubKuisioner, (userAnswerSubKuisioner) => userAnswerSubKuisioner.takeKuisioner)
+  @OneToMany(
+    () => UserAnswerSubKuisioner,
+    (userAnswerSubKuisioner) => userAnswerSubKuisioner.takeKuisioner,
+  )
   userAnswerSubKuisioner: UserAnswerSubKuisioner[];
 }

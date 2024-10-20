@@ -6,7 +6,7 @@ import { ClientPsychologist } from './entities/client_psychologist.entity';
 import { PyschologyModule } from 'src/pyschology/pyschology.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ClientPsychologist]),PyschologyModule],
+  imports: [TypeOrmModule.forFeature([ClientPsychologist]), PyschologyModule],
   controllers: [ClientPsychologistController],
   providers: [ClientPsychologistService],
   exports: [ClientPsychologistService],

@@ -12,6 +12,10 @@ export class Answer {
   @Column({ name: 'score', type: 'int', nullable: false })
   score: number;
 
-  @ManyToOne(() => Question, (question) => question.id,{cascade:true, onDelete:'CASCADE',onUpdate:'CASCADE'})
+  @ManyToOne(() => Question, (question) => question.id, {
+    cascade: true,
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   questionId: Question;
 }

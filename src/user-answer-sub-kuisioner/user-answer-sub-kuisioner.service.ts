@@ -53,8 +53,10 @@ export class UserAnswerSubKuisionerService {
       }
 
       // Step 2: Fetch the takeKuisioner
-      const takeKuisioner =
-        await this.takeKuisionerService.findOne(userId,takeKuisionerId);
+      const takeKuisioner = await this.takeKuisionerService.findOne(
+        userId,
+        takeKuisionerId,
+      );
       if (!takeKuisioner) {
         throw new NotFoundException('You Have Not Taken This Kuisioner');
       }

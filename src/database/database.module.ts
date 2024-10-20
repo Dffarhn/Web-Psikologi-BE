@@ -7,9 +7,9 @@ import databaseConfig from 'src/config/database.config';
 @Module({
   imports: [
     ConfigModule.forRoot({
-        load: [databaseConfig], // Load only the database config
-        validationSchema, // Use the Joi schema for validation
-        envFilePath: ['.env'], // Use the environment file
+      load: [databaseConfig], // Load only the database config
+      validationSchema, // Use the Joi schema for validation
+      envFilePath: ['.env'], // Use the environment file
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule], // Import ConfigModule to use its services

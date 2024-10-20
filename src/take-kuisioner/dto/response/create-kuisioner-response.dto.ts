@@ -1,3 +1,3 @@
 export class CreateTakeKuisionerResponseDTO {
-    id_takeKuisioner:string
+  id_takeKuisioner: string;
 }

@@ -9,7 +9,10 @@ import { Auth } from 'src/auth/entities/auth.entity';
 
 @Global()
 @Module({
-  imports: [TypeOrmModule.forFeature([User,Auth]), forwardRef(() => FacultysModule)],
+  imports: [
+    TypeOrmModule.forFeature([User, Auth]),
+    forwardRef(() => FacultysModule),
+  ],
   controllers: [UserController],
   providers: [UserService],
   exports: [UserService],

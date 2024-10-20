@@ -21,9 +21,9 @@ export class ClientPsychologist {
   @ManyToOne(() => User, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   client: User; // A client can have one psychologist
 
-  @CreateDateColumn({type:'timestamp'})
+  @CreateDateColumn({ type: 'timestamp' })
   assignedAt: Date; // Optional: tracks when a client was assigned to a psychologist
 
-  @UpdateDateColumn({type:'timestamp'})
-  updateAt:Date
+  @UpdateDateColumn({ type: 'timestamp' })
+  updateAt: Date;
 }
