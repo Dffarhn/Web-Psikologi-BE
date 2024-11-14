@@ -59,7 +59,6 @@ export class KuisionerController {
   async createKuisionerController(
     @Body() createKuisionerDTO: CreateKuisionerDTO,
   ): Promise<ResponseApi<string>> {
-    const payload =
       await this.kuisionerService.createKuisioner(createKuisionerDTO);
     return new ResponseApi(
       HttpStatus.OK,
@@ -74,7 +73,7 @@ export class KuisionerController {
   async updateKuisionerController(
     @Param('kuisionerId', new ParseUUIDPipe()) kuisionerId: string,
     @Body() updateKuisionerDTO: UpdateKuisionerDTO,
-  ): Promise<ResponseApi<string>> {
+  ): Promise<ResponseApi<Kuisioner>> {
     const payload = await this.kuisionerService.updateKuisioner(
       kuisionerId,
       updateKuisionerDTO,
@@ -82,7 +81,7 @@ export class KuisionerController {
     return new ResponseApi(
       HttpStatus.OK,
       'Successfully Get Kuisioner',
-      'payload',
+      payload,
     );
   }
 

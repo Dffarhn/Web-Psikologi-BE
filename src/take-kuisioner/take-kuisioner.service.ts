@@ -5,13 +5,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { UpdateTakeKuisionerDto } from './dto/request/update-take-kuisioner.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TakeKuisioner } from './entities/take-kuisioner.entity';
 import { Repository } from 'typeorm';
 import { UserService } from 'src/user/user.service';
 import { KuisionerService } from 'src/kuisioner/kuisioner.service';
 import { UserAnswerSubKuisioner } from 'src/user-answer-sub-kuisioner/entities/user-answer-sub-kuisioner.entity';
+import { CreateTakeKuisionerResponseDTO } from './dto/response/create-kuisioner-response.dto';
+import { SYMTOMP } from 'src/symtomps/group/symtomp.enum';
 
 @Injectable()
 export class TakeKuisionerService {
@@ -24,10 +25,15 @@ export class TakeKuisionerService {
 
     @Inject(KuisionerService)
     private readonly kuisionerService: KuisionerService,
-  ) {}
+  ) { }
 
   async create(kuisionerId: string, userId: string): Promise<string> {
     const user = await this.userService.findById(userId);
+
+    if (!user.preKuisioner.isFinish) {
+      throw new ForbiddenException("Your Pre Kuisioner Not Answered")
+    }
+
     const kuisioner =
       await this.kuisionerService.getOneKuisionerById(kuisionerId);
 
@@ -47,8 +53,12 @@ export class TakeKuisionerService {
     const takeKuisionerList = await this.takeKuisionerRepository.find({
       where: { user: { id: userId } },
       order: { createdAt: 'DESC' }, // Order by createdAt in descending order
+      relations: [
+        'userAnswerSubKuisioner',
+        'userAnswerSubKuisioner.subKuisioner',
+        'userAnswerSubKuisioner.subKuisioner.symtompId'
+      ],
     });
-
     if (!takeKuisionerList || takeKuisionerList.length === 0) {
       throw new NotFoundException('No Kuisioner History Found');
     }
@@ -72,7 +82,11 @@ export class TakeKuisionerService {
   async findOne(userId: string, kuisionerId: string): Promise<TakeKuisioner> {
     const takeKuisioner = await this.takeKuisionerRepository.findOne({
       where: { id: kuisionerId },
-      relations: ['user', 'userAnswerSubKuisioner'],
+      relations: [
+        'user',
+        'userAnswerSubKuisioner',
+        'userAnswerSubKuisioner.subKuisioner',
+      ],
     });
 
     if (!takeKuisioner) {
@@ -85,27 +99,29 @@ export class TakeKuisionerService {
 
     return takeKuisioner;
   }
-
-  async createResult(kuisionerId: string, userId: string) {
+  async createResult(kuisionerId: string, userId: string): Promise<CreateTakeKuisionerResponseDTO> {
     const takeKuisionerFinal = await this.takeKuisionerRepository.findOne({
       where: { id: kuisionerId, isFinish: false },
       relations: [
         'user',
         'userAnswerSubKuisioner',
         'userAnswerSubKuisioner.subKuisioner',
+        'userAnswerSubKuisioner.subKuisioner.symtompId'
       ],
     });
 
+    // Check if the kuisioner exists and is unfinished
     if (!takeKuisionerFinal) {
       throw new BadRequestException('Kuisioner Is Done Generate Report');
     }
 
+    // Check if the user has access to this kuisioner
     if (takeKuisionerFinal.user.id !== userId) {
       throw new ForbiddenException('Access Denied: This is Not Your Kuisioner');
     }
 
-    // Initialize an object to hold the result will be passing to gpt
-    let dataHasil = {};
+    // Initialize an object to hold the result to be passed to GPT
+    const dataHasil: Record<string, any> = {};
 
     // Loop through each user answer in the sub-kuisioner
     takeKuisionerFinal.userAnswerSubKuisioner.forEach(
@@ -113,15 +129,41 @@ export class TakeKuisionerService {
         // Extract relevant information, such as the symptom name
         const symptomName = subKuisioner.subKuisioner.symtompId.name;
 
-        // Example: Collect data, associating it with the symptom name
+        // Collect data, associating it with the symptom name
         dataHasil[subKuisioner.subKuisioner.id] = {
           symptomName: symptomName,
-          userSymtompLevel: subKuisioner.level, // Assuming 'answer' holds the user's response
-          userSymtompScore: subKuisioner.score,
+          userSymtompLevel: subKuisioner.level, // User's response level
+          userSymtompScore: subKuisioner.score, // User's score
         };
       },
     );
 
-    //data perhitungan + report GPT and make it finish
+    // List of required symptoms based on the SYMTOMP enum
+    const requiredSymptoms = Object.values(SYMTOMP);
+
+    // Check if all required symptoms have been answered
+    const answeredSymptoms = Object.values(dataHasil).map(
+      (entry) => entry.symptomName
+    );
+
+    const missingSymptoms = requiredSymptoms.filter(
+      (symptom) => !answeredSymptoms.includes(symptom)
+    );
+
+    if (missingSymptoms.length > 0) {
+      throw new BadRequestException(`The following symptoms have not been answered: ${missingSymptoms.join(', ')}`);
+    }
+
+    // Mark the kuisioner as finished
+    takeKuisionerFinal.isFinish = true;
+
+    //made the report to gpt by the dataAkhir
+
+    // Save the updated kuisioner status
+    const dataAkhir = await this.takeKuisionerRepository.save(takeKuisionerFinal);
+
+    // Return the response
+    return { id_takeKuisioner: dataAkhir.id, createdAt: Date.now() };
   }
+
 }

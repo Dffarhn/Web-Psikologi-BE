@@ -1,18 +1,16 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Patch,
   Param,
   Delete,
   UseGuards,
   HttpStatus,
-  Query,
   ParseUUIDPipe,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from 'src/jwt/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/roles/guards/role.guard';
@@ -20,7 +18,6 @@ import { IsVerificationRequired } from 'src/jwt/decorator/jwtRoute.decorator';
 import { Roles } from 'src/roles/decorators/role.decorator';
 import { ROLES } from 'src/roles/group/role.enum';
 import { ResponseApi } from 'src/common/response/responseApi.format';
-import { User } from './entities/user.entity';
 import { UserId } from './decorator/userId.decorator';
 import { UserProfileDto } from './dto/user-profile.dto';
 
@@ -98,6 +95,10 @@ export class UserController {
   @Roles(ROLES.USER, ROLES.ADMIN, ROLES.SUPERADMIN)
   async remove(@UserId() userId: string): Promise<ResponseApi<string>> {
     const data = await this.userService.remove(userId);
+
+    if (!data) {
+      throw new InternalServerErrorException('Gagagl');
+    }
 
     return new ResponseApi(
       HttpStatus.OK,

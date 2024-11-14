@@ -14,6 +14,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { PsikologiStatus } from '../../pyschology/group/psikologiStatus.enum';
+import { PreKuisionerUser } from 'src/pre-kuisioner-user/entities/pre-kuisioner-user.entity';
 
 @Entity('userEminds')
 export class User {
@@ -44,13 +45,13 @@ export class User {
   })
   role: Role;
 
-  @OneToOne(() => Auth, (auth) => auth.users, {
-    cascade: true,
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-  })
+  @OneToOne(() => Auth, (auth) => auth.users)
   @JoinColumn() // Creates the foreign key in the User table
   auth: Auth;
+
+  @OneToOne(() => PreKuisionerUser, (preKuisionerUser) => preKuisionerUser.user)
+  @JoinColumn() // Creates the foreign key in the User table
+  preKuisioner: PreKuisionerUser;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

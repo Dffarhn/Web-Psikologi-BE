@@ -1,5 +1,4 @@
 import { IsNotEmpty, IsString, IsUUID, Length } from 'class-validator';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { isNotBlank } from 'src/common/validatorCustom/isNotBlank.validator';
 import { LoginRequestDTO } from './loginRequest.dto';
 

@@ -31,6 +31,7 @@ import { PsikologiStatus } from 'src/pyschology/group/psikologiStatus.enum';
 import { ClientPsychologistService } from 'src/client_psychologist/client_psychologist.service';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { CreatePyschologyDto } from 'src/pyschology/dto/create-pyschology.dto';
+import { PreKuisionerUser } from 'src/pre-kuisioner-user/entities/pre-kuisioner-user.entity';
 
 @Injectable()
 export class AuthService {
@@ -54,7 +55,7 @@ export class AuthService {
     private readonly clientPsychologistService: ClientPsychologistService,
 
     private dataSource: DataSource,
-  ) {}
+  ) { }
 
   private async isEmailNotExist(email: string): Promise<boolean> {
     const existingUser = await this.userService.findByEmail(email);
@@ -103,6 +104,12 @@ export class AuthService {
       authRecord.token = this.generateTokenConfirmation(); // Generate token logic
       await queryRunner.manager.save(Auth, authRecord); // Save it within the transaction
 
+
+      const preKuisionerUser = new PreKuisionerUser();
+      preKuisionerUser.isFinish = false; // Fill in any other required fields here
+      await queryRunner.manager.save(PreKuisionerUser, preKuisionerUser);
+
+
       // Initialize new user
       let newUser: any;
 
@@ -112,6 +119,7 @@ export class AuthService {
         newUser.psikologStatus = PsikologiStatus.Pending;
       } else if (role.id === ROLES.USER) {
         newUser = new CreateUserDto();
+        newUser.preKuisioner = preKuisionerUser
       }
 
       // Common user properties
@@ -120,6 +128,8 @@ export class AuthService {
       newUser.password = hashedPassword;
       newUser.auth = authRecord;
       newUser.role = role;
+
+
 
       // Save the user using the query runner's transactional method
       const saveUser = await queryRunner.manager.save(User, newUser);
@@ -214,6 +224,15 @@ export class AuthService {
       access_token: accessToken,
       refresh_token: refreshToken,
     };
+
+    if (user.role.id == ROLES.SUPERADMIN) {
+
+      data.isAdmin = false
+
+    } else if (user.role.id == ROLES.ADMIN) {
+      data.isAdmin = true
+
+    }
 
     return data;
   }

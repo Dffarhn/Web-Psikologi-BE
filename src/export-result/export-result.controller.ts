@@ -1,10 +1,10 @@
 import { Controller, Get, Res } from '@nestjs/common';
-import { PdfService } from './pdf.service';
 import { Response } from 'express';
+import { ExportResultService } from './export-result.service';
 
 @Controller({ path: 'pdf', version: '1' })
-export class PdfController {
-  constructor(private readonly pdfService: PdfService) {}
+export class ExportResultController {
+  constructor(private readonly exportResultService: ExportResultService) { }
 
   @Get('generate')
   async generatePdfResultTestPersonal(@Res() res: Response): Promise<void> {
@@ -30,18 +30,18 @@ export class PdfController {
     try {
       // Generate the PDF buffer
 
-      const pdfBuffer = await this.pdfService.generatePdfResultTestPersonal(
-        name,
-        nim,
-        background,
-        results,
-      );
+      // const pdfBuffer = await this.exportResultService.generatePdfResultTestPersonal(
+      //   name,
+      //   nim,
+      //   background,
+      //   results,
+      // );
       // Set response headers for the PDF
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', 'attachment; filename=report.pdf');
 
       // Send the PDF buffer in the response
-      res.end(pdfBuffer);
+      // res.end(pdfBuffer);
     } catch (error) {
       // Handle any errors that occurred during PDF generation
       res.status(500).send('Error generating PDF');
@@ -60,11 +60,11 @@ export class PdfController {
     ]; // Example client data
 
     try {
-      // Generate the PDF report buffer using the PdfService
-      const pdfBuffer = await this.pdfService.generatePsychologistReport(
-        psychologistName,
-        clientData,
-      );
+      // // Generate the PDF report buffer using the exportResultService
+      // const pdfBuffer = await this.exportResultService.generatePsychologistReport(
+      //   psychologistName,
+      //   clientData,
+      // );
 
       // Set response headers for PDF file download
       res.setHeader('Content-Type', 'application/pdf');
@@ -74,7 +74,7 @@ export class PdfController {
       );
 
       // Send the PDF buffer in the response
-      res.end(pdfBuffer);
+      // res.end(pdfBuffer);
     } catch (error) {
       console.error('Error generating PDF:', error);
       // Handle errors (e.g., if the PDF generation fails)

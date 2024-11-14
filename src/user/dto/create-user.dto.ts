@@ -13,6 +13,7 @@ import {
 import { Gender } from 'src/common/group/gender.enum';
 import { isNotBlank } from 'src/common/validatorCustom/isNotBlank.validator';
 import { Role } from 'src/roles/entities/role.entity';
+import { PreKuisionerUser } from 'src/pre-kuisioner-user/entities/pre-kuisioner-user.entity';
 
 export class CreateUserDto {
   @IsEmail({}, { message: 'Invalid email format' })
@@ -34,6 +35,8 @@ export class CreateUserDto {
 
   @IsNotEmpty({ message: 'auth is required' })
   auth: Auth;
+
+  preKuisioner:PreKuisionerUser
 
   @IsNotEmpty({ message: 'role is required' })
   role: Role;

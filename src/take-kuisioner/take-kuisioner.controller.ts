@@ -64,7 +64,31 @@ export class TakeKuisionerController {
     );
   }
 
-  @Get('history')
+  @Post('result/:kuisionerId')
+  @IsVerificationRequired(true)
+  @Roles(ROLES.USER)
+  async resyltTakeKuisioner(
+    @Param('kuisionerId', new ParseUUIDPipe()) kuisionerId: string,
+    @UserId() userId: string,
+  ): Promise<ResponseApi<CreateTakeKuisionerResponseDTO>> {
+    const newTakeKuisionerId = await this.takeKuisionerService.createResult(
+      kuisionerId,
+      userId,
+    );
+
+    const responsePayload = new CreateTakeKuisionerResponseDTO();
+    responsePayload.id_takeKuisioner = newTakeKuisionerId.id_takeKuisioner;
+    responsePayload.createdAt = newTakeKuisionerId.createdAt;
+
+    return new ResponseApi(
+      HttpStatus.CREATED,
+      'Successfully Created Result Take Kuisioner',
+      responsePayload,
+    );
+  }
+
+
+  @Get('history/user')
   @IsVerificationRequired(true)
   @Roles(ROLES.USER)
   async getKuisionerHistory(

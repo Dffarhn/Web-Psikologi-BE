@@ -32,7 +32,7 @@ import { LoginRequestDTO } from './dto/request/loginRequest.dto';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('register')
   async register(
@@ -63,11 +63,18 @@ export class AuthController {
     const payload = new LoginResponseDTO();
     payload.access_token = loginUser.access_token;
 
+    // console.log(loginUser)
+
+    // Check if `isAdmin` exists on `loginUser` and add it to `payload` without relying on truthiness
+    if (loginUser.hasOwnProperty('isAdmin')) {
+      payload.isAdmin = loginUser.isAdmin;
+    }
+
     // Set the refresh token in HttpOnly cookie
     res.cookie('refreshToken', loginUser.refresh_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Ensures secure cookie in production
-      sameSite: 'strict',
+      secure: true, // Ensures secure cookie in production
+      sameSite: 'none',
       path: '/v1/auth/refresh', // Restrict where the refresh token can be used
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
@@ -80,7 +87,7 @@ export class AuthController {
   @IsVerificationRequired(false)
   async resendConfirmation(
     @UserId() userId: string,
-  ): Promise<ResponseApi<String>> {
+  ): Promise<ResponseApi<string>> {
     const resendEmailConfirmation =
       await this.authService.resendConfirmation(userId);
     return new ResponseApi(

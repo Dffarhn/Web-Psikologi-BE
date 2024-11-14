@@ -37,13 +37,13 @@ export class UserService {
   async findById(id: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { id },
-      relations: ['role', 'auth'], // Include role and auth relations
+      relations: ['role', 'auth','preKuisioner'], // Include role and auth relations
     });
   }
 
-  // findAll() {
-  //   return `This action returns all user`;
-  // }
+  findAll() {
+    return `This action returns all user`;
+  }
 
   async findOne(id: string): Promise<User> {
     const dataArrayUser = await this.userRepository.findOne({

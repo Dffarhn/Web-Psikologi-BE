@@ -4,7 +4,6 @@ import { UserController } from './user.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { FacultysModule } from 'src/facultys/facultys.module';
-import { JwtKeepUpModule } from 'src/jwt/jwt.module';
 import { Auth } from 'src/auth/entities/auth.entity';
 
 @Global()

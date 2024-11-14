@@ -19,13 +19,14 @@ export class UserAnswerKuisionerService {
 
     @Inject(forwardRef(() => UserAnswerSubKuisionerService))
     private readonly userAnswerSubKuisionerService: UserAnswerSubKuisionerService,
-  ) {}
+  ) { }
 
   async create(
     idTakeSubKuisioner: string,
     createUserAnswerKuisionerDto: CreateUserAnswerKuisionerDto[],
     queryRunner: QueryRunner, // Add QueryRunner to ensure transactional consistency
   ) {
+    let score = 0;
     const takeSubKuisioner = await queryRunner.manager.findOne(
       UserAnswerSubKuisioner,
       { where: { id: idTakeSubKuisioner } },
@@ -38,10 +39,12 @@ export class UserAnswerKuisionerService {
         answer: answerData,
       });
 
+      score += answerData.score
+
       await queryRunner.manager.save(saveData); // Save using queryRunner
     }
 
-    return 'This action adds a new userAnswerKuisioner';
+    return { score: score };
   }
 
   findAll() {
@@ -52,10 +55,7 @@ export class UserAnswerKuisionerService {
     return `This action returns a #${id} userAnswerKuisioner`;
   }
 
-  update(
-    id: number,
-    updateUserAnswerKuisionerDto: UpdateUserAnswerKuisionerDto,
-  ) {
+  update(id: number) {
     return `This action updates a #${id} userAnswerKuisioner`;
   }
 

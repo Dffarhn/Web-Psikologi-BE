@@ -20,7 +20,13 @@ import { UserAnswerSubKuisionerModule } from './user-answer-sub-kuisioner/user-a
 import { ClientPsychologistModule } from './client_psychologist/client_psychologist.module';
 import { PyschologyModule } from './pyschology/pyschology.module';
 import { AikeepUpModule } from './aikeep-up/aikeep-up.module';
-import { PdfModule } from './pdf/pdf.module';
+import { StatistikSuperadminModule } from './statistik-superadmin/statistik-superadmin.module';
+import { ExportResultModule } from './export-result/export-result.module';
+import { PreKuisionerCategoryModule } from './pre-kuisioner-category/pre-kuisioner-category.module';
+import { PreKuisionerQuestionModule } from './pre-kuisioner-question/pre-kuisioner-question.module';
+import { PreKuisionerAnswerModule } from './pre-kuisioner-answer/pre-kuisioner-answer.module';
+import { PreKuisionerUserModule } from './pre-kuisioner-user/pre-kuisioner-user.module';
+import { PreKuisionerUserAnswerModule } from './pre-kuisioner-user-answer/pre-kuisioner-user-answer.module';
 
 @Module({
   imports: [
@@ -41,7 +47,13 @@ import { PdfModule } from './pdf/pdf.module';
     ClientPsychologistModule,
     PyschologyModule,
     AikeepUpModule,
-    PdfModule,
+    ExportResultModule,
+    StatistikSuperadminModule,
+    PreKuisionerCategoryModule,
+    PreKuisionerQuestionModule,
+    PreKuisionerAnswerModule,
+    PreKuisionerUserModule,
+    PreKuisionerUserAnswerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

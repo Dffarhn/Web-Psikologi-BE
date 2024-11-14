@@ -61,6 +61,7 @@ export class AnswersService {
   ): Promise<Answer[]> {
     // Find the existing question (to ensure the question exists)
     const dataQuestion = await this.questionsService.findOne(questionId);
+  
 
     if (!dataQuestion) {
       throw new NotFoundException('Question Not Found');

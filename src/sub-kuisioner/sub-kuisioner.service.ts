@@ -21,7 +21,7 @@ export class SubKuisionerService {
 
     @InjectRepository(SubKuisioner)
     private subKuisionerRepository: Repository<SubKuisioner>,
-  ) {}
+  ) { }
 
   async create(
     kuisionerId: string,
@@ -44,10 +44,14 @@ export class SubKuisionerService {
   }
 
   async findOne(subKuisionerId: string): Promise<SubKuisioner> {
-    const payload = await this.subKuisionerRepository.findOne({
-      where: { id: subKuisionerId },
-      relations: ['symtompId', 'questions', 'questions.answers'],
-    });
+    const payload = await this.subKuisionerRepository.createQueryBuilder('subKuisioner')
+      .leftJoinAndSelect('subKuisioner.symtompId', 'symtompId')
+      .leftJoinAndSelect('subKuisioner.questions', 'questions')
+      .leftJoinAndSelect('questions.answers', 'answers')
+      .where('subKuisioner.id = :subKuisionerId', { subKuisionerId })
+      .orderBy('questions.createdAt', 'DESC')  // Order the questions by createdAt
+      .addOrderBy('answers.score','DESC')
+      .getOne();
 
     if (!payload) {
       throw new NotFoundException('Sub Kuisioner Not Found');
