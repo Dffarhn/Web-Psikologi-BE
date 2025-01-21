@@ -1,8 +1,17 @@
 import * as PDFDocument from 'pdfkit';
 import { ExportStrategy } from './export-strategy.interface';
 
+// Abstract class for PDF
+export abstract class PDFReportGenerator {
+  abstract generate(doc: any, data: any): void;
+}
+
 export class PDFExportStrategy implements ExportStrategy {
-  constructor(private reportType: string) {}
+  private generator: PDFReportGenerator;
+
+  constructor(generator: PDFReportGenerator) {
+    this.generator = generator;
+  }
 
   async export(data: any): Promise<Buffer> {
     const doc = new PDFDocument({ margin: 50 });
@@ -13,22 +22,9 @@ export class PDFExportStrategy implements ExportStrategy {
       doc.on('end', () => resolve(Buffer.concat(buffers)));
       doc.on('error', reject);
 
-      // Add header
+      // Add header and footer with styling
       this.addHeader(doc);
-
-      // Add a title and other basic content based on the report type
-      doc
-        .fontSize(20)
-        .text(`Report Type: ${this.reportType.toUpperCase()}`, { align: 'center' })
-        .moveDown(2);
-
-      if (this.reportType === 'personal') {
-        this.generatePersonalReport(doc, data);
-      } else if (this.reportType === 'psychologist') {
-        this.generatePsychologistReport(doc, data);
-      }
-
-      // Add footer
+      this.generator.generate(doc, data);
       this.addFooter(doc);
 
       doc.end();
@@ -36,37 +32,25 @@ export class PDFExportStrategy implements ExportStrategy {
   }
 
   private addHeader(doc: any) {
+    // Blue bar for header background
     doc
-      .fontSize(12)
-      .text('KeepUp', 50, 20, { align: 'left' })
-      .moveDown();
-    doc.moveTo(50, 40).lineTo(550, 40).stroke(); // Add a horizontal line
+      .rect(0, 0, doc.page.width, 50)
+      .fill('#004b93')
+      .fillColor('#ffffff')
+      .fontSize(16)
+      .text('KeepUp Report', 50, 15, { align: 'left', lineBreak: false });
   }
 
   private addFooter(doc: any) {
+    // Blue bar for footer background
     doc
+      .rect(0, doc.page.height - 30, doc.page.width, 30)
+      .fill('#004b93')
+      .fillColor('#ffffff')
       .fontSize(10)
-      .text('KeepUp - Confidential', 50, 750, { align: 'center' });
-    doc.moveTo(50, 740).lineTo(550, 740).stroke(); // Add a horizontal line above footer
-  }
-
-  private generatePersonalReport(doc: any, data: any) {
-    doc
-      .fontSize(14)
-      .text(`Personal Report for: ${data.name}`)
-      .moveDown()
-      .text(`Age: ${data.age}`)
-      .moveDown()
-      .text(`Summary: ${data.summary || 'No summary provided.'}`);
-  }
-
-  private generatePsychologistReport(doc: any, data: any) {
-    doc
-      .fontSize(14)
-      .text(`Psychologist Report for: ${data.name}`)
-      .moveDown()
-      .text(`Session Date: ${data.sessionDate || 'Not specified.'}`)
-      .moveDown()
-      .text(`Notes: ${data.notes || 'No notes available.'}`);
+      .text('KeepUp - Confidential', 50, doc.page.height - 20, {
+        align: 'center',
+        lineBreak: false,
+      });
   }
 }

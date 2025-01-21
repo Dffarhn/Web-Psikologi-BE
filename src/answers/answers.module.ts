@@ -3,6 +3,7 @@ import { AnswersService } from './answers.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Answer } from './entities/answer.entity';
 import { QuestionsModule } from 'src/questions/questions.module';
+import { AnswersController } from './answers.controller';
 
 @Module({
   imports: [
@@ -11,5 +12,6 @@ import { QuestionsModule } from 'src/questions/questions.module';
   ],
   providers: [AnswersService],
   exports: [AnswersService],
+  controllers: [AnswersController],
 })
 export class AnswersModule {}

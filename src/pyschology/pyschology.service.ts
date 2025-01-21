@@ -4,14 +4,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreatePyschologyDto } from './dto/create-pyschology.dto';
-import { UpdatePyschologyDto } from './dto/update-pyschology.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ROLES } from 'src/roles/group/role.enum';
 import { RolesService } from 'src/roles/roles.service';
 import { User } from 'src/user/entities/user.entity';
 import { PsikologiStatus } from 'src/pyschology/group/psikologiStatus.enum';
 import { Repository } from 'typeorm';
+import { TakeKuisioner } from 'src/take-kuisioner/entities/take-kuisioner.entity';
 
 @Injectable()
 export class PyschologyService {
@@ -19,9 +18,12 @@ export class PyschologyService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
 
+    @InjectRepository(TakeKuisioner)
+    private takeKuisionerRepository: Repository<TakeKuisioner>,
+
     @Inject(RolesService)
     private readonly rolesService: RolesService,
-  ) {}
+  ) { }
 
   async findPsychologyForUserRegister(): Promise<User> {
     const psychologist = await this.userRepository
@@ -95,4 +97,5 @@ export class PyschologyService {
 
     return psychologist;
   }
+
 }

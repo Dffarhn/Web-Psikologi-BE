@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePreKuisionerUserDto } from './dto/create-pre-kuisioner-user.dto';
 import { UpdatePreKuisionerUserDto } from './dto/update-pre-kuisioner-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -10,26 +10,26 @@ export class PreKuisionerUserService {
 
   constructor(
     @InjectRepository(PreKuisionerUser)
-    private readonly preKuisionerUser: Repository<PreKuisionerUser>
+    private readonly preKuisionerUserRepository: Repository<PreKuisionerUser>
   ) { }
 
   create(createPreKuisionerUserDto: CreatePreKuisionerUserDto) {
-    return 'This action adds a new preKuisionerUser';
+    return 'This action adds a new preKuisionerUserRepository';
   }
 
   findAll() {
-    return `This action returns all preKuisionerUser`;
+    return `This action returns all preKuisionerUserRepository`;
   }
 
-  async findOne(id: string): Promise<any> {
-    const userWithAnswers = await this.preKuisionerUser.findOne({
+  async findOne(id: string): Promise<PreKuisionerUser> {
+    const userWithAnswers = await this.preKuisionerUserRepository.findOne({
       where: { user: { id } },
       relations: [
-        "user",
-        "preKuisionerUserAnswer",
-        "preKuisionerUserAnswer.preKuisionerAnswer",
-        "preKuisionerUserAnswer.preKuisionerAnswer.preQuestionId",
-        "preKuisionerUserAnswer.preKuisionerAnswer.preQuestionId.category",
+        'user',
+        'preKuisionerUserAnswer',
+        'preKuisionerUserAnswer.preKuisionerAnswer',
+        'preKuisionerUserAnswer.preKuisionerAnswer.preQuestionId',
+        'preKuisionerUserAnswer.preKuisionerAnswer.preQuestionId.category',
       ],
     });
 
@@ -37,42 +37,25 @@ export class PreKuisionerUserService {
       return null; // Handle the case where the user is not found
     }
 
-    // Group answers by category
-    const groupedByCategory = userWithAnswers.preKuisionerUserAnswer.reduce((acc, answer) => {
-      const categoryId = answer.preKuisionerAnswer.preQuestionId.category.id; // Replace with actual category ID property
-      const categoryName = answer.preKuisionerAnswer.preQuestionId.category.name; // Replace with actual category name property
-
-      // Find existing category group or create a new one
-      let categoryGroup = acc.find(group => group.categoryId === categoryId);
-      if (!categoryGroup) {
-        categoryGroup = {
-          categoryId,
-          categoryName,
-          preKuisionerAnswer: [],
-        };
-        acc.push(categoryGroup);
-      }
-
-      // Add the answer to the corresponding category group
-      categoryGroup.preKuisionerAnswer.push(answer);
-
-      return acc;
-    }, []);
-
-    // Return the transformed data structure
-    return {
-      ...userWithAnswers,
-      preKuisionerUserAnswer: groupedByCategory,
-    };
+    return userWithAnswers
   }
+
+  async finishPreKuisioner(id: string): Promise<void> {
+    const result = await this.preKuisionerUserRepository.update(id, { isFinish: true });
+
+    if (result.affected === 0) {
+      throw new NotFoundException(`PreKuisionerUser with ID ${id} not found`);
+    }
+  }
+
 
 
 
   update(id: number, updatePreKuisionerUserDto: UpdatePreKuisionerUserDto) {
-    return `This action updates a #${id} preKuisionerUser`;
+    return `This action updates a #${id} preKuisionerUserRepository`;
   }
 
   remove(id: number) {
-    return `This action removes a #${id} preKuisionerUser`;
+    return `This action removes a #${id} preKuisionerUserRepository`;
   }
 }

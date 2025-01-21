@@ -23,6 +23,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsNotEmpty({ message: 'Nim is required' })
   @Length(2, 32, { message: 'Nim must be between 2 and 32 characters' })
   @isNotBlank({ message: 'Nim cannot be blank' })
+  @IsOptional()
   nim: string;
 
   @IsNotEmpty({ message: 'Year of entry is required' })

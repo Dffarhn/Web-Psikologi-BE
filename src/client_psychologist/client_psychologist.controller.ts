@@ -21,7 +21,7 @@ import { Roles } from 'src/roles/decorators/role.decorator';
 import { ROLES } from 'src/roles/group/role.enum';
 import { UserId } from 'src/user/decorator/userId.decorator';
 
-@Controller({ path: 'client/psychology', version: '1' })
+@Controller({ path: 'client', version: '1' })
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ClientPsychologistController {
   constructor(
@@ -38,7 +38,7 @@ export class ClientPsychologistController {
   //   return this.clientPsychologistService.findAll();
   // }
 
-  @Get()
+  @Get('psychology')
   @IsVerificationRequired(true)
   @Roles(ROLES.USER)
   async findOne(
@@ -53,7 +53,7 @@ export class ClientPsychologistController {
     );
   }
 
-  @Get('admin')
+  @Get('psychology/admin')
   @IsVerificationRequired(true)
   @Roles(ROLES.ADMIN)
   async findOneAsPsychology(
@@ -64,24 +64,23 @@ export class ClientPsychologistController {
 
     return new ResponseApi(
       HttpStatus.OK,
-      'Successfully get psychologist',
+      'Successfully get client psychologist',
+      data,
+    );
+  }
+  @Get('superAdmin')
+  @IsVerificationRequired(true)
+  @Roles(ROLES.SUPERADMIN)
+  async findOneAsSuperAdmin(): Promise<ResponseApi<ClientPsychologist[]>> {
+    const data =
+      await this.clientPsychologistService.findAll();
+
+    return new ResponseApi(
+      HttpStatus.OK,
+      'Successfully get client psychologist',
       data,
     );
   }
 
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateClientPsychologistDto: UpdateClientPsychologistDto,
-  ) {
-    return this.clientPsychologistService.update(
-      +id,
-      updateClientPsychologistDto,
-    );
-  }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.clientPsychologistService.remove(+id);
-  }
 }

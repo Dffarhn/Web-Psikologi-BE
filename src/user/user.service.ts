@@ -31,13 +31,14 @@ export class UserService {
   async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { email },
-      relations: ['role', 'auth'], // Include role and auth relations
+      select:['password','id','role','username','email'],
+      relations: ['userPsycholog','userPsycholog.psychologist','psychologistClients','faculty','role', 'auth','preKuisioner'], // Include role and auth relations
     });
   }
   async findById(id: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { id },
-      relations: ['role', 'auth','preKuisioner'], // Include role and auth relations
+      relations: ['userPsycholog','userPsycholog.psychologist','psychologistClients','faculty','role', 'auth','preKuisioner'], // Include role and auth relations
     });
   }
 
@@ -48,6 +49,7 @@ export class UserService {
   async findOne(id: string): Promise<User> {
     const dataArrayUser = await this.userRepository.findOne({
       where: { id: id },
+      relations:['userPsycholog','userPsycholog.psychologist','psychologistClients','faculty','role', 'auth','preKuisioner']
     });
 
     if (!dataArrayUser) {

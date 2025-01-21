@@ -1,5 +1,7 @@
 import {
   forwardRef,
+  HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
@@ -20,7 +22,7 @@ export class AnswersService {
 
     @Inject(forwardRef(() => QuestionsService))
     private questionsService: QuestionsService, // Inject the QuestionsService
-  ) {}
+  ) { }
 
   async create(
     questionId: string,
@@ -61,7 +63,7 @@ export class AnswersService {
   ): Promise<Answer[]> {
     // Find the existing question (to ensure the question exists)
     const dataQuestion = await this.questionsService.findOne(questionId);
-  
+
 
     if (!dataQuestion) {
       throw new NotFoundException('Question Not Found');
@@ -92,7 +94,70 @@ export class AnswersService {
     return updatedAnswers;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} answer`;
+  async add(id_question: string, data: CreateAnswerDto) {
+    try {
+      // Fetch the related question
+      const questionData = await this.questionsService.findOne(id_question);
+
+      // If no question found, throw a 404 error
+      if (!questionData) {
+        throw new HttpException('Question not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Create the answer entity
+      const newAnswer = this.answerRepository.create({
+        answer: data.answer,
+        score: data.score,
+        questionId: questionData, // Assuming this is a relation mapping
+      });
+
+      // Save the new answer to the repository
+      const savedAnswer = await this.answerRepository.save(newAnswer);
+
+      return savedAnswer; // Return the saved entity for further use or response
+    } catch (error) {
+      // Handle database or other errors gracefully
+      throw new HttpException(
+        error.message || 'An error occurred while adding the answer',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
+  
+  async update(id_answer: string, data: UpdateAnswerDto) {
+    try {
+      // Find the existing answer by ID
+      const existingAnswer = await this.answerRepository.findOne({ where: { id: id_answer } });
+
+      // If the answer doesn't exist, throw a 404 error
+      if (!existingAnswer) {
+        throw new HttpException('Answer not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Update the fields of the existing answer
+      existingAnswer.answer = data.answer;
+      existingAnswer.score = data.score;
+
+      // Save the updated answer
+      const updatedAnswer = await this.answerRepository.save(existingAnswer);
+
+      return updatedAnswer; // Return the updated entity for further use or response
+    } catch (error) {
+      // Handle database or other errors gracefully
+      throw new HttpException(
+        error.message || 'An error occurred while updating the answer',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+
+  async remove(id: string) {
+    try {
+      return await this.answerRepository.delete({ id });
+    } catch (error) {
+      throw new HttpException('An error occurred while deleting the answer', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
 }

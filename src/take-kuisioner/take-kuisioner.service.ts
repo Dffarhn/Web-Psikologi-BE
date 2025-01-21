@@ -7,12 +7,17 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TakeKuisioner } from './entities/take-kuisioner.entity';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { UserService } from 'src/user/user.service';
 import { KuisionerService } from 'src/kuisioner/kuisioner.service';
 import { UserAnswerSubKuisioner } from 'src/user-answer-sub-kuisioner/entities/user-answer-sub-kuisioner.entity';
 import { CreateTakeKuisionerResponseDTO } from './dto/response/create-kuisioner-response.dto';
 import { SYMTOMP } from 'src/symtomps/group/symtomp.enum';
+import { PreKuisionerUserService } from 'src/pre-kuisioner-user/pre-kuisioner-user.service';
+import { AikeepUpService } from 'src/aikeep-up/aikeep-up.service';
+import { Background, ReportData, SymptomResult } from './take-kuisioner.model';
+import { transformPreKuisionerUserAnswerFromEntity } from 'src/common/function/helper/preKuisionerUserProses.function';
+import { transformPreKuisionerUserAnswer, transformUserAnswerSubKuisioner } from 'src/common/function/helper/exportProses.function';
 
 @Injectable()
 export class TakeKuisionerService {
@@ -25,9 +30,15 @@ export class TakeKuisionerService {
 
     @Inject(KuisionerService)
     private readonly kuisionerService: KuisionerService,
+
+    @Inject(PreKuisionerUserService)
+    private readonly preKuisionerUserService: PreKuisionerUserService,
+
+    @Inject(AikeepUpService)
+    private readonly aiKeepUpService: AikeepUpService
   ) { }
 
-  async create(kuisionerId: string, userId: string): Promise<string> {
+  async create(kuisionerId: string, userId: string): Promise<CreateTakeKuisionerResponseDTO> {
     const user = await this.userService.findById(userId);
 
     if (!user.preKuisioner.isFinish) {
@@ -46,31 +57,144 @@ export class TakeKuisionerService {
     const savedTakeKuisioner =
       await this.takeKuisionerRepository.save(newTakeKuisioner);
 
-    return savedTakeKuisioner.id;
+    return { id_takeKuisioner: savedTakeKuisioner.id, createdAt: Date.now() };
   }
 
-  async findAll(userId: string): Promise<TakeKuisioner[]> {
+
+
+  async findHistory(userId: string): Promise<TakeKuisioner[]> {
+
+    const userExists = await this.userService.findOne(userId);
+    if (!userExists) {
+      throw new NotFoundException('User not found');
+    }
+    // Fetch all records for the user, ordered by createdAt (descending)
     const takeKuisionerList = await this.takeKuisionerRepository.find({
-      where: { user: { id: userId } },
-      order: { createdAt: 'DESC' }, // Order by createdAt in descending order
+      where: {
+        user: { id: userId },
+        isFinish: true,
+      },
+      order: { createdAt: 'DESC' },
       relations: [
+        'user',
         'userAnswerSubKuisioner',
         'userAnswerSubKuisioner.subKuisioner',
-        'userAnswerSubKuisioner.subKuisioner.symtompId'
+        'userAnswerSubKuisioner.userAnswerKuisioners',
+        'userAnswerSubKuisioner.userAnswerKuisioners.answer',
+        'userAnswerSubKuisioner.userAnswerKuisioners.answer.questionId',
+        'userAnswerSubKuisioner.subKuisioner.symtompId',
       ],
     });
+  
+    // If there are no records, return an empty array
     if (!takeKuisionerList || takeKuisionerList.length === 0) {
-      throw new NotFoundException('No Kuisioner History Found');
+      return []; // Return an empty array instead of throwing an error
+    }
+  
+    // Group by date and ensure we get the latest record for each unique day
+    const latestEntries: TakeKuisioner[] = [];
+    const processedDates: Set<string> = new Set(); // To track processed dates
+  
+    // Loop through the sorted list (most recent first)
+    for (const entry of takeKuisionerList) {
+      const entryDate = entry.createdAt.toISOString().split('T')[0]; // Get only YYYY-MM-DD
+  
+      // If this date is not already processed, add the record
+      if (!processedDates.has(entryDate)) {
+        latestEntries.push(entry);
+        processedDates.add(entryDate); // Mark this date as processed
+      }
+    }
+  
+    return latestEntries;
+  }
+  
+
+
+  async findAll(): Promise<TakeKuisioner[]> {
+    const latestTakeKuisioner = await this.takeKuisionerRepository
+      .createQueryBuilder('take_kuisioner')
+      .leftJoinAndSelect('take_kuisioner.user', 'userEminds')
+      .leftJoinAndSelect('userEminds.faculty', 'faculty') // Include user.faculty
+      .leftJoinAndSelect('take_kuisioner.userAnswerSubKuisioner', 'userAnswerSubKuisioner')
+      .leftJoinAndSelect('userAnswerSubKuisioner.subKuisioner', 'subKuisioner')
+      .leftJoinAndSelect('subKuisioner.symtompId', 'symtompId') // Include subKuisioner.symtompId
+      .leftJoinAndSelect('userAnswerSubKuisioner.userAnswerKuisioners', 'userAnswerKuisioners')
+      .leftJoinAndSelect('userAnswerKuisioners.answer', 'answer') // Include userAnswerKuisioners.answer
+      .leftJoinAndSelect('answer.questionId', 'questionId') // Include answer.questionId
+      .where(
+        `take_kuisioner."createdAt" = (
+        SELECT MAX(tk."createdAt")
+        FROM take_kuisioner tk
+        WHERE tk."userId" = take_kuisioner."userId"
+      )`
+      )
+      .andWhere('take_kuisioner.isFinish = :isFinish', { isFinish: true })
+      .getMany();
+
+
+    if (!latestTakeKuisioner) {
+      throw new NotFoundException('No Kuisioner Found');
     }
 
-    return takeKuisionerList;
+    return latestTakeKuisioner;
+  }
+
+  async findAllForPsychologist(psychologist_id: string): Promise<TakeKuisioner[]> {
+    const findAllTakeKuisionerForPsychologist = await this.takeKuisionerRepository
+      .createQueryBuilder('take_kuisioner')
+      .leftJoinAndSelect('take_kuisioner.user', 'userEminds') // Join with userEminds (the User table)
+      .leftJoinAndSelect('userEminds.faculty', 'faculty') // Include user.faculty
+      .leftJoinAndSelect('take_kuisioner.userAnswerSubKuisioner', 'userAnswerSubKuisioner')
+      .leftJoinAndSelect('userAnswerSubKuisioner.subKuisioner', 'subKuisioner')
+      .leftJoinAndSelect('subKuisioner.symtompId', 'symtompId') // Include subKuisioner.symtompId
+      .leftJoinAndSelect('userAnswerSubKuisioner.userAnswerKuisioners', 'userAnswerKuisioners')
+      .leftJoinAndSelect('userAnswerKuisioners.answer', 'answer') // Include userAnswerKuisioners.answer
+      .leftJoinAndSelect('answer.questionId', 'questionId') // Include answer.questionId
+      .leftJoinAndSelect('userEminds.psychologistClients', 'clientPsychologist')
+      .leftJoinAndSelect('userEminds.userPsycholog', 'userPsycholog')
+      .leftJoinAndSelect('userPsycholog.psychologist', 'psychologist')
+      .where(
+        `take_kuisioner."createdAt" = (
+        SELECT MAX(tk."createdAt")
+        FROM take_kuisioner tk
+        WHERE tk."userId" = take_kuisioner."userId"
+      )`
+      )
+      .andWhere('take_kuisioner.isFinish = :isFinish', { isFinish: true })
+      .andWhere('psychologist.id = :psychologistId', { psychologistId: psychologist_id }).getMany();
+
+    if (!findAllTakeKuisionerForPsychologist) {
+      throw new NotFoundException('No Kuisioner Found');
+    }
+
+    return findAllTakeKuisionerForPsychologist;
   }
 
   async findLatest(userId: string): Promise<TakeKuisioner> {
     const latestTakeKuisioner = await this.takeKuisionerRepository.findOne({
-      where: { user: { id: userId } },
+      where: { user: { id: userId }, isFinish: true },
       order: { createdAt: 'DESC' }, // Order by createdAt in descending order
+      relations: [
+        'user',
+        'user.faculty',
+        'user.userPsycholog',
+        'user.userPsycholog.psychologist',
+        'user.preKuisioner',
+        'user.preKuisioner.preKuisionerUserAnswer',
+        'user.preKuisioner.preKuisionerUserAnswer.preKuisionerAnswer',
+        'user.preKuisioner.preKuisionerUserAnswer.preKuisionerAnswer.preQuestionId',
+        'user.preKuisioner.preKuisionerUserAnswer.preKuisionerAnswer.preQuestionId.category',
+        'userAnswerSubKuisioner',
+        'userAnswerSubKuisioner.subKuisioner',
+        'userAnswerSubKuisioner.subKuisioner.symtompId',
+        'userAnswerSubKuisioner.userAnswerKuisioners',
+        'userAnswerSubKuisioner.userAnswerKuisioners.answer',
+        'userAnswerSubKuisioner.userAnswerKuisioners.answer.questionId'
+      ],
     });
+
+
 
     if (!latestTakeKuisioner) {
       throw new NotFoundException('No Kuisioner Found');
@@ -85,6 +209,9 @@ export class TakeKuisionerService {
       relations: [
         'user',
         'userAnswerSubKuisioner',
+        'userAnswerSubKuisioner.userAnswerKuisioners',
+        'userAnswerSubKuisioner.userAnswerKuisioners.answer',
+        'userAnswerSubKuisioner.userAnswerKuisioners.answer.questionId',
         'userAnswerSubKuisioner.subKuisioner',
       ],
     });
@@ -99,11 +226,17 @@ export class TakeKuisionerService {
 
     return takeKuisioner;
   }
+
   async createResult(kuisionerId: string, userId: string): Promise<CreateTakeKuisionerResponseDTO> {
     const takeKuisionerFinal = await this.takeKuisionerRepository.findOne({
       where: { id: kuisionerId, isFinish: false },
       relations: [
         'user',
+        'user.preKuisioner',
+        'user.preKuisioner.preKuisionerUserAnswer',
+        'user.preKuisioner.preKuisionerUserAnswer.preKuisionerAnswer',
+        'user.preKuisioner.preKuisionerUserAnswer.preKuisionerAnswer.preQuestionId',
+        'user.preKuisioner.preKuisionerUserAnswer.preKuisionerAnswer.preQuestionId.category',
         'userAnswerSubKuisioner',
         'userAnswerSubKuisioner.subKuisioner',
         'userAnswerSubKuisioner.subKuisioner.symtompId'
@@ -154,8 +287,27 @@ export class TakeKuisionerService {
       throw new BadRequestException(`The following symptoms have not been answered: ${missingSymptoms.join(', ')}`);
     }
 
+    const preKuisionerData = transformPreKuisionerUserAnswerFromEntity(takeKuisionerFinal.user.preKuisioner)
+
+    // console.log(preKuisionerData)
+
+    const preKuisionerDataFinal = transformPreKuisionerUserAnswer(preKuisionerData.preKuisionerUserAnswer)
+
+    const subKuisionerFinalData = transformUserAnswerSubKuisioner(takeKuisionerFinal.userAnswerSubKuisioner)
+
+    const DataGenerateAIReport: ReportData = { background: preKuisionerDataFinal, result: subKuisionerFinalData, user: takeKuisionerFinal.user }
+
+    const report = await this.aiKeepUpService.generateReport(DataGenerateAIReport)
+
+    DataGenerateAIReport.report = report
+
+    // console.log(DataGenerateAIReport)
+
+
+
     // Mark the kuisioner as finished
     takeKuisionerFinal.isFinish = true;
+    takeKuisionerFinal.report = report
 
     //made the report to gpt by the dataAkhir
 
@@ -163,7 +315,9 @@ export class TakeKuisionerService {
     const dataAkhir = await this.takeKuisionerRepository.save(takeKuisionerFinal);
 
     // Return the response
-    return { id_takeKuisioner: dataAkhir.id, createdAt: Date.now() };
+    return { id_takeKuisioner: dataAkhir.id, createdAt: Date.now(), report: DataGenerateAIReport };
+    // return subKuisionerFinalData
   }
+
 
 }

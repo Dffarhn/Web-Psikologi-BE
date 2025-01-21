@@ -101,13 +101,14 @@ export class UserAnswerSubKuisionerService {
       );
 
       // Get the score category
-      const scoreAkhir = this.getScoreCategory(subKuisioner.symtompId.name, score.score);
+      const levelAkhir = this.getScoreCategory(subKuisioner.symtompId.name, score.score);
+      const scoreAkhir = this.getAdjustedScore(subKuisioner.symtompId.name, score.score);
 
       // Step 7: Update the dataAkhir entity with the score and level
-      createTakeSubKuisioner.level = scoreAkhir;
-      createTakeSubKuisioner.score = score.score;
+      createTakeSubKuisioner.level = levelAkhir;
+      createTakeSubKuisioner.score = scoreAkhir;
       createTakeSubKuisioner.takeKuisioner = takeKuisioner
-      console.log(takeKuisioner)
+      // console.log(takeKuisioner)
 
       // Save the updated entity back to the database
       await queryRunner.manager.save(createTakeSubKuisioner);
@@ -161,6 +162,15 @@ export class UserAnswerSubKuisionerService {
 
 
   getScoreCategory(symptomName: string, score: number): Level {
+    // Multiply score by 2 for specific symptoms
+    if (
+      symptomName === SYMTOMP.KECEMASAN ||
+      symptomName === SYMTOMP.STRESS ||
+      symptomName === SYMTOMP.DEPRESI
+    ) {
+      score *= 2; // Double the score for these symptoms
+    }
+
     switch (symptomName) {
       case SYMTOMP.KECEMASAN:
         if (score >= 0 && score <= 7) return Level.NORMAL;
@@ -191,7 +201,7 @@ export class UserAnswerSubKuisionerService {
         if (score >= 10 && score <= 13) return Level.LOW;
         if (score >= 14 && score <= 17) return Level.INTERMEDIATE;
         if (score >= 18 && score <= 21) return Level.HIGH;
-        if (score >= 22 && score <= 25) return Level.SUPERHIGH;
+        if (score >= 22) return Level.SUPERHIGH;
         break;
 
       case SYMTOMP.KECANDUAN_PONSEL:
@@ -199,13 +209,26 @@ export class UserAnswerSubKuisionerService {
         if (score >= 12 && score <= 17) return Level.LOW;
         if (score >= 18 && score <= 23) return Level.INTERMEDIATE;
         if (score >= 24 && score <= 29) return Level.HIGH;
-        if (score >= 30 && score <= 36) return Level.SUPERHIGH;
+        if (score >= 30) return Level.SUPERHIGH;
         break;
 
       default:
         return Level.NORMAL; // Default if the symptom type is unknown
     }
   }
+
+  getAdjustedScore(symptomName: string, score: number): number {
+    // Double the score for specified symptoms
+    if (
+      symptomName === SYMTOMP.KECEMASAN ||
+      symptomName === SYMTOMP.STRESS ||
+      symptomName === SYMTOMP.DEPRESI
+    ) {
+      return score * 2;
+    }
+    return score;
+  }
+
 
 
 }

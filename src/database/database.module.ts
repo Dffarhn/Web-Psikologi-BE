@@ -22,9 +22,14 @@ import databaseConfig from 'src/config/database.config';
         password: configService.get<string>('database.password'),
         database: configService.get<string>('database.name'),
         entities: [__dirname + '/../**/*.entity{.ts,.js}'], // Ensure this path is correct
+        migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
+        cli: {
+          migrationsDir: __dirname + '/migrations/',
+        },
         synchronize: true, // Be cautious with synchronize in production
+        autoLoadEntities:true
       }),
     }),
   ],
 })
-export class DatabaseModule {}
+export class DatabaseModule { }

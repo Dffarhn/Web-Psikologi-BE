@@ -21,7 +21,7 @@ import { TakeKuisioner } from './entities/take-kuisioner.entity';
 @Controller({ path: 'take/kuisioner', version: '1' })
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class TakeKuisionerController {
-  constructor(private readonly takeKuisionerService: TakeKuisionerService) {}
+  constructor(private readonly takeKuisionerService: TakeKuisionerService) { }
 
   @Post(':kuisionerId')
   @IsVerificationRequired(true)
@@ -36,7 +36,8 @@ export class TakeKuisionerController {
     );
 
     const responsePayload = new CreateTakeKuisionerResponseDTO();
-    responsePayload.id_takeKuisioner = newTakeKuisionerId;
+    responsePayload.id_takeKuisioner = newTakeKuisionerId.id_takeKuisioner;
+    responsePayload.createdAt = newTakeKuisionerId.createdAt
 
     return new ResponseApi(
       HttpStatus.CREATED,
@@ -79,11 +80,12 @@ export class TakeKuisionerController {
     const responsePayload = new CreateTakeKuisionerResponseDTO();
     responsePayload.id_takeKuisioner = newTakeKuisionerId.id_takeKuisioner;
     responsePayload.createdAt = newTakeKuisionerId.createdAt;
+    responsePayload.report = newTakeKuisionerId.report
 
     return new ResponseApi(
       HttpStatus.CREATED,
       'Successfully Created Result Take Kuisioner',
-      responsePayload,
+      newTakeKuisionerId,
     );
   }
 
@@ -94,7 +96,7 @@ export class TakeKuisionerController {
   async getKuisionerHistory(
     @UserId() userId: string,
   ): Promise<ResponseApi<TakeKuisioner[]>> {
-    const kuisionerHistory = await this.takeKuisionerService.findAll(userId);
+    const kuisionerHistory = await this.takeKuisionerService.findHistory(userId);
 
     return new ResponseApi(
       HttpStatus.OK,
@@ -103,7 +105,7 @@ export class TakeKuisionerController {
     );
   }
 
-  @Get()
+  @Get('latest/user')
   @IsVerificationRequired(true)
   @Roles(ROLES.USER)
   async getLatestKuisioner(

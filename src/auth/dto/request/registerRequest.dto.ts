@@ -13,8 +13,5 @@ export class RegisterRequestDTO extends LoginRequestDTO {
   @isNotBlank({ message: 'Password confirmation cannot be blank' })
   retypedpassword: string;
 
-  @IsNotEmpty({ message: 'Role is required' })
-  @isNotBlank({ message: 'Role cannot be blank' })
-  @IsUUID('4', { message: 'Role ID must be a valid UUID' })
-  roleId: string;
+  
 }

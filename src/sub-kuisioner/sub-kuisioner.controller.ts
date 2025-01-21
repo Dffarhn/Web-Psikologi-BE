@@ -9,6 +9,7 @@ import {
   HttpStatus,
   UseGuards,
   ParseUUIDPipe,
+  Inject,
 } from '@nestjs/common';
 import { SubKuisionerService } from './sub-kuisioner.service';
 import {
@@ -23,11 +24,16 @@ import { RolesGuard } from 'src/roles/guards/role.guard';
 import { IsVerificationRequired } from 'src/jwt/decorator/jwtRoute.decorator';
 import { Roles } from 'src/roles/decorators/role.decorator';
 import { ROLES } from 'src/roles/group/role.enum';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Controller({ path: 'subkuisioner', version: '1' })
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class SubKuisionerController {
-  constructor(private readonly subKuisionerService: SubKuisionerService) {}
+  constructor(
+    private readonly subKuisionerService: SubKuisionerService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache // Inject cache manager
+  ) { }
 
   @Post(':kuisionerId')
   @IsVerificationRequired(true)
@@ -54,7 +60,23 @@ export class SubKuisionerController {
   async findOne(
     @Param('subKuisionerId', new ParseUUIDPipe()) subKuisionerId: string,
   ): Promise<ResponseApi<SubKuisioner>> {
+    const cacheKey = `subKuisioner_${subKuisionerId}`;
+
+    // Check if data is cached
+    const cachedData = await this.cacheManager.get<SubKuisioner>(cacheKey)
+    if (cachedData) {
+      return new ResponseApi(
+        HttpStatus.OK,
+        'Successfully Get Sub Kuisioner (from cache)',
+        cachedData,
+      );
+    }
+
+    // Fetch data from service if not cached
     const payload = await this.subKuisionerService.findOne(subKuisionerId);
+
+    // Cache the data with a custom TTL
+    await this.cacheManager.set(cacheKey, payload);
 
     return new ResponseApi(
       HttpStatus.OK,

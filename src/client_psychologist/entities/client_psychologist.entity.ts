@@ -18,7 +18,7 @@ export class ClientPsychologist {
   })
   psychologist: User; // A psychologist can have many clients
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.userPsycholog, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   client: User; // A client can have one psychologist
 
   @CreateDateColumn({ type: 'timestamp' })

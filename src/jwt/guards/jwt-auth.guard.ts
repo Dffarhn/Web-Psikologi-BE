@@ -23,7 +23,7 @@ export class JwtAuthGuard implements CanActivate {
     private userService: UserService,
     private jwtService: JwtKeepUpService,
     private reflector: Reflector, // Use reflector to access route metadata
-  ) {}
+  ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context

@@ -9,6 +9,7 @@ import { IsVerificationRequired } from 'src/jwt/decorator/jwtRoute.decorator';
 import { Roles } from 'src/roles/decorators/role.decorator';
 import { ROLES } from 'src/roles/group/role.enum';
 import { ResponseApi } from 'src/common/response/responseApi.format';
+import { transformPreKuisionerUserAnswerFromEntity } from 'src/common/function/helper/preKuisionerUserProses.function';
 
 @Controller({ path: 'pre-kuisioner/user', version: '1' })
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -36,7 +37,7 @@ export class PreKuisionerUserController {
     return new ResponseApi(
       HttpStatus.CREATED,
       'Successfully Created Category Pre Kuisioner',
-      responsePayload,
+      transformPreKuisionerUserAnswerFromEntity(responsePayload),
     );
 
 

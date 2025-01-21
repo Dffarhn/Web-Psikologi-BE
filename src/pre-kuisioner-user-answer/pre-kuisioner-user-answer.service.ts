@@ -31,13 +31,18 @@ export class PreKuisionerUserAnswerService {
 
     // Get the related PreKuisionerUser entity
     const getPreKuisionerUser = await this.preKuisionerUserService.findOne(idPreKuisionerUser);
-    
+
     if (!getPreKuisionerUser) {
       throw new BadRequestException("Your Pre Kuisioner User Is Wrong");
     }
 
+
     const allquestion = await this.preKuisionerQuestionService.countQuestion()
 
+    if (getPreKuisionerUser.preKuisionerUserAnswer.length >= allquestion) {
+      throw new BadRequestException("Your Are Done Answer this");
+
+    }
     // Get all answers using the service
     const getAllAnswer = await this.preKuisionerAnswerService.findAllUserAnswer(createPreKuisionerUserAnswerDto);
 
@@ -57,6 +62,8 @@ export class PreKuisionerUserAnswerService {
 
     // Save all new user answers
     await this.preKuisionerUserAnswerRepository.save(newUserAnswers);
+
+    await this.preKuisionerUserService.finishPreKuisioner(getPreKuisionerUser.id)
 
     return { preKuisionerId: idPreKuisionerUser, created_at: Date.now() };
   }

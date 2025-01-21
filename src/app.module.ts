@@ -27,6 +27,11 @@ import { PreKuisionerQuestionModule } from './pre-kuisioner-question/pre-kuision
 import { PreKuisionerAnswerModule } from './pre-kuisioner-answer/pre-kuisioner-answer.module';
 import { PreKuisionerUserModule } from './pre-kuisioner-user/pre-kuisioner-user.module';
 import { PreKuisionerUserAnswerModule } from './pre-kuisioner-user-answer/pre-kuisioner-user-answer.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import { CacheModule } from '@nestjs/cache-manager';
+import { StatistikPsychologyModule } from './statistik-psychology/statistik-psychology.module';
+import { SumaryKuisionerModule } from './sumary_kuisioner/sumary_kuisioner.module';
 
 @Module({
   imports: [
@@ -54,9 +59,32 @@ import { PreKuisionerUserAnswerModule } from './pre-kuisioner-user-answer/pre-ku
     PreKuisionerAnswerModule,
     PreKuisionerUserModule,
     PreKuisionerUserAnswerModule,
+
+    ThrottlerModule.forRoot([{
+      ttl: 60000,  // 1 minute (60000ms)
+      limit: 50,   // Allow up to 10 requests within 1 minute
+    }]),
+
+    CacheModule.register({
+      isGlobal:true,
+      ttl: 300000, // time to live in seconds
+      max: 10, // maximum number of items in cache
+    }),
+
+    StatistikPsychologyModule,
+
+
+    SumaryKuisionerModule,
+
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard
+    }
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

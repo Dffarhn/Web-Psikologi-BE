@@ -36,21 +36,21 @@ export class UserController {
   @Roles(ROLES.USER, ROLES.ADMIN, ROLES.SUPERADMIN)
   async profile(
     @UserId() userId: string,
-  ): Promise<ResponseApi<UserProfileDto>> {
+  ): Promise<ResponseApi<any>> {
     const userData = await this.userService.findOne(userId);
 
     // Map the User entity to UserProfileDto to exclude unwanted fields
-    const userProfile: UserProfileDto = {
-      id: userData.id,
-      email: userData.email,
-      username: userData.username,
-      nim: userData.nim,
-      yearEntry: userData.yearEntry,
-      gender: userData.gender,
-      birthDate: userData.birthDate, // Optional
-    };
+    // const userProfile: UserProfileDto = {
+    //   id: userData.id,
+    //   email: userData.email,
+    //   username: userData.username,
+    //   nim: userData.nim,
+    //   yearEntry: userData.yearEntry,
+    //   gender: userData.gender,
+    //   birthDate: userData.birthDate, // Optional
+    // };
 
-    return new ResponseApi(HttpStatus.OK, 'Get User Successfully', userProfile);
+    return new ResponseApi(HttpStatus.OK, 'Get User Successfully', userData);
   }
 
   @Get(':id')

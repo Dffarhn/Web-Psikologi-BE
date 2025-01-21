@@ -72,7 +72,7 @@ export class AuthService {
     return savedAuth;
   }
 
-  async register(registerAuthDTO: RegisterRequestDTO): Promise<RegisterData> {
+  async register(registerAuthDTO: RegisterRequestDTO, origin: string): Promise<RegisterData> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -91,7 +91,18 @@ export class AuthService {
         throw new BadRequestException('Passwords do not match');
       }
 
-      const role = await this.roleService.getRoleById(registerAuthDTO.roleId);
+      // Determine roleId based on origin
+      let roleId: string;
+      if (origin === 'https://keepup-iota.vercel.app') {
+        roleId = ROLES.USER; // Role for greatly-free-oriole
+      } else if (origin === 'https://keepupadmin.vercel.app') {
+
+        roleId = ROLES.ADMIN; // Role for husky-coherent-legally
+        
+      }
+
+
+      const role = await this.roleService.getRoleById(roleId);
       if (!role) {
         throw new BadRequestException('Invalid Role ID');
       }

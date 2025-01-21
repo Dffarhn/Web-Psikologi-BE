@@ -22,7 +22,7 @@ export class ClientPsychologistService {
 
     @Inject(PyschologyService)
     private readonly pyschologyService: PyschologyService,
-  ) {}
+  ) { }
 
   async createOnRegisterUser(
     user: User,
@@ -51,8 +51,26 @@ export class ClientPsychologistService {
     }
   }
 
-  findAll() {
-    return `This action returns all clientPsychologist`;
+  async findAll() {
+
+    const data = await this.clientPsycholgistRepository.find({
+      relations: ['client'],
+    });
+
+    if (!data || data.length === 0) {
+      throw new NotFoundException('You do not have any clients as a psychologist');
+    }
+
+    // Adding the contact URL with dynamic subject inside the client object
+    const dataFinalClientPsikolog = data.map((item) => ({
+      ...item,
+      client: {
+        ...item.client,
+        contact: `https://mail.google.com/mail/u/3/?fs=1&to=${item.client.email}&tf=cm`,
+      },
+    }));
+
+    return dataFinalClientPsikolog;
   }
 
   async findOne(userId: string): Promise<ClientPsychologist> {
@@ -73,17 +91,20 @@ export class ClientPsychologistService {
       relations: ['client'],
     });
 
-    if (!data) {
-      throw new NotFoundException('You are not have psyhcolog');
+    if (!data || data.length === 0) {
+      throw new NotFoundException('You do not have any clients as a psychologist');
     }
-    return data;
+
+    // Adding the contact URL with dynamic subject inside the client object
+    const dataFinalClientPsikolog = data.map((item) => ({
+      ...item,
+      client: {
+        ...item.client,
+        contact: `https://mail.google.com/mail/u/3/?fs=1&to=${item.client.email}&tf=cm`,
+      },
+    }));
+
+    return dataFinalClientPsikolog;
   }
 
-  update(id: number, updateClientPsychologistDto: UpdateClientPsychologistDto) {
-    return `This action updates a #${id} clientPsychologist`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} clientPsychologist`;
-  }
 }

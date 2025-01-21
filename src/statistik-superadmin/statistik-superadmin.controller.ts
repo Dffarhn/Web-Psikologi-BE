@@ -6,12 +6,15 @@ import { RolesGuard } from 'src/roles/guards/role.guard';
 import { Roles } from 'src/roles/decorators/role.decorator';
 import { ROLES } from 'src/roles/group/role.enum';
 import { ResponseApi } from 'src/common/response/responseApi.format';
+import { UserId } from 'src/user/decorator/userId.decorator';
+import { SummaryKuisionerService } from 'src/sumary_kuisioner/summary-kuisioner.service';
 
 @Controller({ path: 'statistik/superAdmin', version: '1' })
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class StatistikSuperadminController {
   constructor(
     private readonly statistikSuperAdminService: StatistikSuperadminService,
+    private readonly summaryKuisionerService: SummaryKuisionerService
   ) {}
 
   @Get()
@@ -40,7 +43,7 @@ export class StatistikSuperadminController {
       data,
     );
   }
-  @Get('user')
+  @Get('gender')
   @IsVerificationRequired(true)
   @Roles(ROLES.SUPERADMIN)
   async getAllStatistikGenderUser() {
@@ -54,7 +57,7 @@ export class StatistikSuperadminController {
     );
   }
 
-  @Get('user/kuisioner')
+  @Get('user')
   @IsVerificationRequired(true)
   @Roles(ROLES.SUPERADMIN)
   async getAllStatistikUserKuisioner() {
@@ -65,6 +68,36 @@ export class StatistikSuperadminController {
       HttpStatus.OK,
       'Successfully Get Statistik Gender User',
       data,
+    );
+  }
+
+  @Get('count')
+  @IsVerificationRequired(true)
+  @Roles(ROLES.SUPERADMIN)
+  async getCountStatistikUserKuisioner() {
+    const data =
+      await this.statistikSuperAdminService.countAllUserKuisionerStatistik();
+
+    return new ResponseApi(
+      HttpStatus.OK,
+      'Successfully Get Statistik Gender User',
+      data,
+    );
+  }
+
+
+  @Get('sumarize')
+  @IsVerificationRequired(true)
+  @Roles(ROLES.SUPERADMIN)
+  async getSumarizeOfKuisioner(@UserId() userId:string){
+
+    const summary = await this.summaryKuisionerService.getOrUpdateSummaryForUser(userId);
+
+    // Return the summary
+    return new ResponseApi (
+      HttpStatus.OK,
+      'Successfully Get Statistik Gender User',
+      summary,
     );
   }
 }

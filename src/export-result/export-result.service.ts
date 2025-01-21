@@ -1,28 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { ExportStrategy } from './strategy/export-strategy.interface';
-import { PDFExportStrategy } from './strategy/pdf-export.strategy';
-import { ExcelExportStrategy } from './strategy/excel-export.strategy';
+import { ExportStrategyFactory } from './export-strategy.factory';
+import { ExportType, ReportType } from './strategy/export-strategy.interface';
+import * as ExcelJS from 'exceljs';
 
 @Injectable()
 export class ExportResultService {
-  
   async exportResult(
-    exportType:string,
+    exportType: ExportType, // Use enum here
     data: any,
-    reportType:string // Move the optional parameter to the end
-  ): Promise<Buffer> {
-    let exportStrategy: ExportStrategy;
+    reportType: ReportType // Use enum here
+  ): Promise<Buffer | ExcelJS.Buffer> {
 
-    // Choose the export strategy based on the type
-    if (exportType === 'pdf') {
-      exportStrategy = new PDFExportStrategy(reportType);
-    } else if (exportType === 'excel') {
-      exportStrategy = new ExcelExportStrategy();
-    } else {
-      throw new Error('Invalid export type');
-    }
-
+    const exportStrategy = ExportStrategyFactory.create(exportType, reportType);
     return exportStrategy.export(data);
   }
-
 }

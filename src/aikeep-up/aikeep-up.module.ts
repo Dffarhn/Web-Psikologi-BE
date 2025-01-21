@@ -3,7 +3,6 @@ import { AikeepUpService } from './aikeep-up.service';
 import { ConfigModule } from '@nestjs/config';
 import aiConfig from 'src/config/ai.config';
 import { validationSchema } from 'src/config/validation.schema';
-import { AikeepUpController } from './aikeep-up.controller';
 
 @Module({
   imports: [
@@ -14,6 +13,7 @@ import { AikeepUpController } from './aikeep-up.controller';
     }),
   ],
   providers: [AikeepUpService],
-  controllers: [AikeepUpController],
+  controllers: [],
+  exports:[AikeepUpService]
 })
 export class AikeepUpModule {}

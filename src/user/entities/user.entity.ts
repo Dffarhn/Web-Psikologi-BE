@@ -15,6 +15,7 @@ import {
 } from 'typeorm';
 import { PsikologiStatus } from '../../pyschology/group/psikologiStatus.enum';
 import { PreKuisionerUser } from 'src/pre-kuisioner-user/entities/pre-kuisioner-user.entity';
+import { SummaryKuisioner } from 'src/sumary_kuisioner/entity/summary-kuisioner.entity';
 
 @Entity('userEminds')
 export class User {
@@ -27,7 +28,7 @@ export class User {
   @Column({ type: 'varchar' })
   username: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', select: false })
   password: string;
 
   @Column({ type: 'varchar', nullable: true })
@@ -87,4 +88,13 @@ export class User {
     (clientPsychologist) => clientPsychologist.psychologist,
   )
   psychologistClients: ClientPsychologist[]; // A psychologist can have many clients
+  @OneToMany(
+    () => ClientPsychologist,
+    (clientPsychologist) => clientPsychologist.client,
+  )
+  userPsycholog: ClientPsychologist[]; // A psychologist can have many clients
+
+
+  @OneToOne(() => SummaryKuisioner, (summaryKuisioner) => summaryKuisioner.user, { nullable: true })
+  summaryKuisioner: SummaryKuisioner | null;
 }

@@ -3,22 +3,17 @@ import {
   Get,
   Post,
   Body,
-  Patch,
-  Param,
-  Delete,
   HttpCode,
   HttpStatus,
   Query,
   Res,
-  BadRequestException,
-  HttpException,
   UseGuards,
   Req,
   ParseUUIDPipe,
+  Headers,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ResponseApi } from 'src/common/response/responseApi.format';
-import { ResendConfirmationDTO } from './dto/request/resendAuth.dto';
 import { Response } from 'express';
 import { JwtAuthGuard } from 'src/jwt/guards/jwt-auth.guard';
 import { IsVerificationRequired } from 'src/jwt/decorator/jwtRoute.decorator';
@@ -36,9 +31,10 @@ export class AuthController {
 
   @Post('register')
   async register(
+    @Headers('origin') origin: string,
     @Body() registerAuthDTO: RegisterRequestDTO,
   ): Promise<ResponseApi<RegisterResponseDTO>> {
-    const registerUser = await this.authService.register(registerAuthDTO);
+    const registerUser = await this.authService.register(registerAuthDTO,origin);
 
     const payload = new RegisterResponseDTO();
 
@@ -106,7 +102,7 @@ export class AuthController {
     const result = await this.authService.confirmEmail(authId, token);
 
     // If confirmation is successful, respond with success message
-    return response.redirect('https://google.com');
+    return response.redirect('https://keepup-iota.vercel.app/User/login');
   }
 
   @Post('refresh')

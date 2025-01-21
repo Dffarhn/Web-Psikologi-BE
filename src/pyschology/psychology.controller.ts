@@ -1,17 +1,14 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Patch,
   Param,
-  Delete,
   UseGuards,
   HttpStatus,
   Query,
 } from '@nestjs/common';
 import { PyschologyService } from './pyschology.service';
-import { CreatePyschologyDto } from './dto/create-pyschology.dto';
 import { UpdatePyschologyDto } from './dto/update-pyschology.dto';
 import { JwtAuthGuard } from 'src/jwt/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/roles/guards/role.guard';
@@ -25,12 +22,8 @@ import { PsikologiStatus } from './group/psikologiStatus.enum';
 @Controller({ path: 'psychology', version: '1' })
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PyschologyController {
-  constructor(private readonly pyschologyService: PyschologyService) {}
+  constructor(private readonly pyschologyService: PyschologyService) { }
 
-  // @Post()
-  // create(@Body() createPyschologyDto: CreatePyschologyDto) {
-  //   return this.pyschologyService.create(createPyschologyDto);
-  // }
 
   @Get()
   @IsVerificationRequired(true)
@@ -46,6 +39,7 @@ export class PyschologyController {
       data,
     );
   }
+
 
   @Get(':id')
   @IsVerificationRequired(true)
@@ -66,6 +60,9 @@ export class PyschologyController {
       updatePyschologyDto.status,
     );
   }
+
+
+
 
   // @Delete(':id')
   // remove(@Param('id') id: string) {
