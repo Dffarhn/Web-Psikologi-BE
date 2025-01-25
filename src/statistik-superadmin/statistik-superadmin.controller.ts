@@ -1,4 +1,4 @@
-import { Controller, Get, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Param, ParseUUIDPipe, UseGuards } from '@nestjs/common';
 import { StatistikSuperadminService } from './statistik-superadmin.service';
 import { IsVerificationRequired } from 'src/jwt/decorator/jwtRoute.decorator';
 import { JwtAuthGuard } from 'src/jwt/guards/jwt-auth.guard';
@@ -84,6 +84,24 @@ export class StatistikSuperadminController {
       data,
     );
   }
+
+  @Get('user/:facultyId')
+  @IsVerificationRequired(true)
+  @Roles(ROLES.SUPERADMIN)
+  async getAllStatistikUserByFacultyKuisioner(
+    @Param('facultyId', new ParseUUIDPipe() ) facultyId: string,
+  ) {
+    const data =
+      await this.statistikSuperAdminService.countAllUserKuisionerByFacultyStatistik(facultyId);
+
+    return new ResponseApi(
+      HttpStatus.OK,
+      'Successfully Get Statistik Gender User',
+      data,
+    );
+  }
+
+  
 
 
   @Get('sumarize')

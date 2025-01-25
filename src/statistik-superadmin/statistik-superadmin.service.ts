@@ -218,9 +218,37 @@ export class StatistikSuperadminService {
             allUser: userCount,
             userDoneKuisioner: userCountDoneKuisioner
         }
-
-
     }
+
+    async countAllUserKuisionerByFacultyStatistik(idFaculty: string) {
+        const userCountDoneKuisioner = await this.takeKuisionerRepository
+            .createQueryBuilder('take_kuisioner')
+            .leftJoinAndSelect('take_kuisioner.user', 'userEminds')
+            .leftJoin('userEminds.major', 'major') // Join with the `major` table
+            .select('major.id', 'majorId') // Select the `majorId`
+            .addSelect('major.name', 'majorName') // Select the `majorName`
+            .addSelect('COUNT(DISTINCT take_kuisioner.userId)', 'userDoneKuisioner') // Count unique users
+            .where(
+                `take_kuisioner."createdAt" = (
+                    SELECT MAX(tk."createdAt")
+                    FROM take_kuisioner tk
+                    WHERE tk."userId" = take_kuisioner."userId"
+                )`
+            )
+            .andWhere('take_kuisioner.isFinish = :isFinish', { isFinish: true })
+            .andWhere('userEminds.facultyId = :facultyId', { facultyId: idFaculty })
+            .groupBy('major.id')
+            .addGroupBy('major.name') // Group by major name
+            .getRawMany();
+    
+        // Return the formatted results
+        return userCountDoneKuisioner.map(row => ({
+            majorId: row.majorId,
+            majorName: row.majorName,
+            userDoneKuisioner: parseInt(row.userDoneKuisioner, 10),
+        }));
+    }    
+    
 
 
 
