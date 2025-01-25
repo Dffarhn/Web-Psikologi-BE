@@ -16,6 +16,7 @@ import {
 import { PsikologiStatus } from '../../pyschology/group/psikologiStatus.enum';
 import { PreKuisionerUser } from 'src/pre-kuisioner-user/entities/pre-kuisioner-user.entity';
 import { SummaryKuisioner } from 'src/sumary_kuisioner/entity/summary-kuisioner.entity';
+import { Major } from 'src/major/entities/major.entity';
 
 @Entity('userEminds')
 export class User {
@@ -66,6 +67,13 @@ export class User {
     onUpdate: 'CASCADE',
   }) // Assuming a Faculty entity
   faculty: Faculty;
+
+  @ManyToOne(() => Major, (major) => major.users, {
+    nullable: true,
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  }) // Assuming a Faculty entity
+  major: Major;
 
   @Column({
     type: 'enum',

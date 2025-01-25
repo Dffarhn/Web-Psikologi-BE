@@ -13,11 +13,16 @@ import {
 import { isNotBlank } from 'src/common/validatorCustom/isNotBlank.validator';
 import { Gender } from 'src/common/group/gender.enum';
 import { Faculty } from 'src/facultys/entities/faculty.entity';
+import { Major } from 'src/major/entities/major.entity';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsUUID('4', { message: 'Faculty Id Must be a UUID' })
   @IsOptional()
   facultyId: string;
+
+  @IsUUID('4', { message: 'Major Id Must be a UUID' })
+  @IsOptional()
+  majorId: string;
 
   @IsString({ message: 'Nim must be a string' })
   @IsNotEmpty({ message: 'Nim is required' })
@@ -40,6 +45,10 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsNotEmpty({ message: 'Faculty is required' })
   @IsOptional()
   faculty: Faculty;
+
+  @IsNotEmpty({ message: 'Major is required' })
+  @IsOptional()
+  major: Major;
 
   @IsNotEmpty({ message: 'Gender is required' })
   @isNotBlank({ message: 'Gender cannot be blank' })

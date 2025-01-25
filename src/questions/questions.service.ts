@@ -68,7 +68,7 @@ export class QuestionsService {
   async findOne(questionId: string): Promise<Question> {
     const payload = await this.questionRepository.findOne({
       where: { id: questionId },
-      relations: ['answers'],
+      relations: ['answers','subKuisionerId'],
       order: {
         answers: {
           score: 'ASC',

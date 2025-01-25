@@ -5,12 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { FacultysModule } from 'src/facultys/facultys.module';
 import { Auth } from 'src/auth/entities/auth.entity';
+import { MajorModule } from 'src/major/major.module';
 
 @Global()
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Auth]),
     forwardRef(() => FacultysModule),
+    MajorModule
   ],
   controllers: [UserController],
   providers: [UserService],

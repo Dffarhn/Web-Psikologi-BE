@@ -1,3 +1,4 @@
+import { Major } from 'src/major/entities/major.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
@@ -11,4 +12,7 @@ export class Faculty {
 
   @OneToMany(() => User, (user) => user.faculty, { cascade: true })
   users: User[];
+
+  @OneToMany(() => Major, (major) => major.faculty, { cascade: true })
+  majors: Major[]; // One Faculty can have many Majors
 }

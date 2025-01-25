@@ -8,6 +8,8 @@ import { FacultysService } from 'src/facultys/facultys.service';
 import { ROLES } from 'src/roles/group/role.enum';
 import { PsikologiStatus } from '../pyschology/group/psikologiStatus.enum';
 import { Auth } from 'src/auth/entities/auth.entity';
+import { Major } from 'src/major/entities/major.entity';
+import { MajorService } from 'src/major/major.service';
 
 @Injectable()
 export class UserService {
@@ -20,7 +22,11 @@ export class UserService {
 
     @Inject(FacultysService)
     private readonly facultyService: FacultysService,
-  ) {}
+
+
+    @Inject(MajorService)
+    private readonly majorService: MajorService
+  ) { }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const newUser = this.userRepository.create(createUserDto);
@@ -31,14 +37,14 @@ export class UserService {
   async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { email },
-      select:['password','id','role','username','email'],
-      relations: ['userPsycholog','userPsycholog.psychologist','psychologistClients','faculty','role', 'auth','preKuisioner'], // Include role and auth relations
+      select: ['password', 'id', 'role', 'username', 'email'],
+      relations: ['userPsycholog', 'userPsycholog.psychologist', 'psychologistClients', 'faculty', 'role', 'auth', 'preKuisioner','major'], // Include role and auth relations
     });
   }
   async findById(id: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { id },
-      relations: ['userPsycholog','userPsycholog.psychologist','psychologistClients','faculty','role', 'auth','preKuisioner'], // Include role and auth relations
+      relations: ['userPsycholog', 'userPsycholog.psychologist', 'psychologistClients', 'faculty', 'role', 'auth', 'preKuisioner','major'], // Include role and auth relations
     });
   }
 
@@ -49,7 +55,7 @@ export class UserService {
   async findOne(id: string): Promise<User> {
     const dataArrayUser = await this.userRepository.findOne({
       where: { id: id },
-      relations:['userPsycholog','userPsycholog.psychologist','psychologistClients','faculty','role', 'auth','preKuisioner']
+      relations: ['userPsycholog', 'userPsycholog.psychologist', 'psychologistClients', 'faculty', 'role', 'auth', 'preKuisioner','major']
     });
 
     if (!dataArrayUser) {
@@ -71,6 +77,12 @@ export class UserService {
       );
 
       updateUserDto.faculty = faculty;
+    }
+
+    if (updateUserDto.majorId) {
+      const major = await this.majorService.getMajorById(updateUserDto.majorId)
+
+      updateUserDto.major = major
     }
 
     Object.assign(user, updateUserDto); // Apply the updates

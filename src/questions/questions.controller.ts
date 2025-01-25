@@ -24,11 +24,16 @@ import { Question } from './entities/question.entity';
 import { BodyCreateQuestionDto } from './dto/create-question.dto';
 import { CreateQuestionInterface } from './interfaces/createQuestion.interface';
 import { BodyUpdateQuestionDto } from './dto/update-question.dto';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { SubKuisioner } from 'src/sub-kuisioner/entities/sub-kuisioner.entity';
 
 @Controller({ path: 'questions', version: '1' })
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class QuestionsController {
-  constructor(private questionService: QuestionsService) {}
+  constructor(private questionService: QuestionsService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache // Inject cache manager
+  ) { }
 
   @Get(':questionId')
   @IsVerificationRequired(true)
@@ -65,6 +70,16 @@ export class QuestionsController {
         subKuisionerId,
         createQuestionDTO,
       );
+
+      const cacheKey = `subKuisioner_${subKuisionerId}`;
+
+      const cachedData = await this.cacheManager.get<SubKuisioner>(cacheKey);
+      if (cachedData) {
+        await this.cacheManager.del(cacheKey);
+      }
+
+
+      // Check if data is cached
       return new ResponseApi(
         HttpStatus.CREATED,
         'Successfully created question',
@@ -92,6 +107,14 @@ export class QuestionsController {
         questionId,
         bodyUpdateQuestionDto,
       );
+
+      
+      const cacheKey = `subKuisioner_${payload.subKuisionerId.id}`;
+
+      const cachedData = await this.cacheManager.get<SubKuisioner>(cacheKey);
+      if (cachedData) {
+        await this.cacheManager.del(cacheKey);
+      }
       return new ResponseApi(
         HttpStatus.OK,
         'Successfully update question',
@@ -107,14 +130,23 @@ export class QuestionsController {
     }
   }
 
-  @Delete(':questionId')
+  @Delete(':subKuisionerId/:questionId')
   @IsVerificationRequired(true)
   @Roles(ROLES.SUPERADMIN)
   async remove(
     @Param('questionId') questionId: string,
+    @Param('subKuisionerId') subKuionerId: string,
   ): Promise<ResponseApi<Date>> {
     try {
       const payload = await this.questionService.remove(questionId);
+
+      const cacheKey = `subKuisioner_${subKuionerId}`;
+
+      const cachedData = await this.cacheManager.get<SubKuisioner>(cacheKey);
+      if (cachedData) {
+        await this.cacheManager.del(cacheKey);
+      }
+
       return new ResponseApi(
         HttpStatus.OK,
         'Successfully delete question',

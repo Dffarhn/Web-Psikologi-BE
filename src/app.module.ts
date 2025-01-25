@@ -32,6 +32,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { CacheModule } from '@nestjs/cache-manager';
 import { StatistikPsychologyModule } from './statistik-psychology/statistik-psychology.module';
 import { SumaryKuisionerModule } from './sumary_kuisioner/sumary_kuisioner.module';
+import { MajorModule } from './major/major.module';
 
 @Module({
   imports: [
@@ -75,6 +76,9 @@ import { SumaryKuisionerModule } from './sumary_kuisioner/sumary_kuisioner.modul
 
 
     SumaryKuisionerModule,
+
+
+    MajorModule,
 
   ],
   controllers: [AppController],
